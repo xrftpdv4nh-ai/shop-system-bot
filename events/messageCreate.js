@@ -4,9 +4,13 @@ module.exports = {
     if (!message.guild) return;
     if (message.author.bot) return;
 
+    // أمر تجريبي
+    if (message.content.toLowerCase() === "ping") {
+      return message.reply("pong 🏓");
+    }
+
     // هنا هنضيف بعدين:
-    // - setline here
-    // - إرسال صورة الخط
-    // - حماية السبام
+    // - أوامر setline
+    // - System Line
   }
 };
