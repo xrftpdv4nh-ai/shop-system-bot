@@ -9,8 +9,5 @@ module.exports = {
       return message.reply("pong 🏓");
     }
 
-    // هنا هنضيف بعدين:
-    // - أوامر setline
-    // - System Line
   }
 };
