@@ -1,13 +1,15 @@
-require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
-const { 
-  Client, 
-  GatewayIntentBits, 
-  Collection, 
-  REST, 
-  Routes 
+const {
+  Client,
+  GatewayIntentBits,
+  Collection,
+  REST,
+  Routes
 } = require("discord.js");
+
+// ⬅️ ربط MongoDB
+const connectDB = require("./database/connect");
 
 const client = new Client({
   intents: [
@@ -98,4 +100,11 @@ client.once("ready", async () => {
   }
 });
 
-client.login(process.env.TOKEN);
+/* =======================
+   Start Bot (Mongo + Discord)
+======================= */
+
+(async () => {
+  await connectDB();              // ⬅️ يتأكد إن Mongo اشتغل
+  await client.login(process.env.TOKEN); // ⬅️ توكن من Railway
+})();
