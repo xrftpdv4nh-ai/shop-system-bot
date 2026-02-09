@@ -111,5 +111,29 @@ module.exports = {
         ephemeral: true
       });
     }
+    /* =========================
+   4️⃣ استقبال مودال نشر الإعلان
+========================= */
+if (interaction.isModalSubmit() && interaction.customId === "post_ad_modal") {
+  const script = interaction.fields.getTextInputValue("ad_script");
+  let mention = interaction.fields.getTextInputValue("ad_mention") || "none";
+
+  mention = mention.toLowerCase();
+
+  let mentionText = "";
+  if (mention === "here") mentionText = "@here";
+  if (mention === "everyone") mentionText = "@everyone";
+
+  // تأكيد للأدمن
+  await interaction.reply({
+    content: "✅ تم نشر الإعلان بنجاح",
+    ephemeral: true
+  });
+
+  // نشر الإعلان في نفس الروم
+  await interaction.channel.send({
+    content: `${mentionText}\n${script}`
+  });
+}
   }
 };
