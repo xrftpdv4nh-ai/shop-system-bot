@@ -5,27 +5,43 @@ const {
   ActionRowBuilder
 } = require("discord.js");
 
-// دالة التشفير
+/* =========================
+   دالة التشفير (ستايل يدوي)
+========================= */
 function encryptText(text) {
-  const zero = "\u200B";
 
-  // منع الروابط
+  // منع الروابط المباشرة
   text = text.replace(/https?:\/\//gi, "");
   text = text.replace(/\./g, " [.] ");
 
-  // كلمات حساسة
-  const words = ["sell", "buy", "nitro", "dm"];
-  words.forEach(w => {
-    const broken = w.split("").join("•");
-    const regex = new RegExp(w, "gi");
-    text = text.replace(regex, broken);
+  const replacements = [
+    // كلمات كاملة
+    { r: /بوت/gi, v: "بـ9ت" },
+    { r: /بوتات/gi, v: "بـ9تات" },
+    { r: /نيترو/gi, v: "نيتر9" },
+    { r: /خاص/gi, v: "خـ1ص" },
+    { r: /سعر|اسعار|الاسعار/gi, v: "الأسـ3ـار" },
+    { r: /تفعيل/gi, v: "تفـ3ـيل" },
+    { r: /فيزه/gi, v: "فيـzه" },
+    { r: /مقابل/gi, v: "مقـ9بل" },
+    { r: /تواصل/gi, v: "تواصـ1" },
+
+    // كلمات شائعة
+    { r: /متوفر/gi, v: "متـ9فر" },
+    { r: /بروجكت/gi, v: "بروجكت" },
+    { r: /تداول/gi, v: "تداول" },
+
+    // حروف خفيفة (مش كل النص)
+    { r: /و/g, v: "9" },
+    { r: /س/g, v: "سـ3ـ" },
+    { r: /ز/g, v: "ـzـ" }
+  ];
+
+  replacements.forEach(rule => {
+    text = text.replace(rule.r, rule.v);
   });
 
-  // Zero-width characters
-  return text
-    .split("")
-    .map(c => c + zero)
-    .join("");
+  return text;
 }
 
 module.exports = {
@@ -68,7 +84,7 @@ module.exports = {
 
       const input = new TextInputBuilder()
         .setCustomId("post_text")
-        .setLabel("اكتب منشورك هنا")
+        .setLabel("اكتب إعلانك هنا")
         .setStyle(TextInputStyle.Paragraph)
         .setRequired(true)
         .setMaxLength(2000);
@@ -84,8 +100,8 @@ module.exports = {
        3️⃣ استقبال المودال
     ========================= */
     if (interaction.isModalSubmit() && interaction.customId === "encrypt_modal") {
-      const text = interaction.fields.getTextInputValue("post_text");
-      const encrypted = encryptText(text);
+      const originalText = interaction.fields.getTextInputValue("post_text");
+      const encrypted = encryptText(originalText);
 
       return interaction.reply({
         content:
