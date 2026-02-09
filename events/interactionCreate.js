@@ -122,38 +122,52 @@ module.exports = {
 
     // ... كود زر التشفير + encrypt_modal
 
-    /* =========================
-       4️⃣ استقبال مودال نشر الإعلان
-    ========================= */
-    if (interaction.isModalSubmit() && interaction.customId === "post_ad_modal") {
-      const script = interaction.fields.getTextInputValue("ad_script");
-      let mention = interaction.fields.getTextInputValue("ad_mention") || "none";
+/* =========================
+   4️⃣ استقبال مودال نشر الإعلان (FIXED)
+========================= */
+if (interaction.isModalSubmit() && interaction.customId === "post_ad_modal") {
+  try {
+    await interaction.deferReply({ ephemeral: true });
 
-      mention = mention.toLowerCase();
+    const script = interaction.fields.getTextInputValue("ad_script");
+    let mention = interaction.fields.getTextInputValue("ad_mention") || "none";
 
-      let mentionText = "";
-      if (mention === "here") mentionText = "@here";
-      if (mention === "everyone") mentionText = "@everyone";
+    mention = mention.toLowerCase();
 
-      const { EmbedBuilder } = require("discord.js");
+    let mentionText = "";
+    if (mention === "here") mentionText = "@here";
+    if (mention === "everyone") mentionText = "@everyone";
 
-      const adEmbed = new EmbedBuilder()
-        .setColor(0x2b2d31)
-        .setDescription(`**${script}**`)
-        .setFooter({ text: "Obscura • Official Advertisement" });
-
-      await interaction.reply({
-        content: "✅ تم نشر الإعلان بنجاح",
-        ephemeral: true
-      });
-
-      await interaction.channel.send({
-        content: mentionText || null,
-        embeds: [adEmbed]
-      });
+    // حماية من طول الإيمبد
+    if (script.length > 4000) {
+      return interaction.editReply("❌ سكربت الإعلان طويل جدًا (الحد الأقصى 4000 حرف)");
     }
 
+    const { EmbedBuilder } = require("discord.js");
+
+    const adEmbed = new EmbedBuilder()
+      .setColor(0x2b2d31)
+      .setTitle("📢 إعلان")
+      .setDescription(`**${script}**`)
+      .setFooter({ text: "Obscura • Official Advertisement" });
+
+    await interaction.channel.send({
+      content: mentionText || undefined,
+      embeds: [adEmbed]
+    });
+
+    await interaction.editReply("✅ تم نشر الإعلان بنجاح");
+
+  } catch (err) {
+    console.error("POST AD ERROR:", err);
+
+    if (!interaction.replied) {
+      await interaction.reply({
+        content: "❌ حصل خطأ أثناء نشر الإعلان",
+        ephemeral: true
+      });
+    }
   }
-};
+}
   }
 };
