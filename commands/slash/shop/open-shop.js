@@ -1,6 +1,7 @@
 const {
   SlashCommandBuilder,
   PermissionFlagsBits,
+  ChannelType,
   EmbedBuilder
 } = require("discord.js");
 const fs = require("fs");
@@ -13,58 +14,130 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("open-shop")
     .setDescription("فتح روم شوب لشخص")
-    .addUserOption(o =>
-      o.setName("user")
+    .addUserOption(option =>
+      option
+        .setName("user")
         .setDescription("صاحب الشوب")
         .setRequired(true)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   async execute(interaction) {
-    const user = interaction.options.getUser("user");
-    const config = JSON.parse(fs.readFileSync(configFile));
+    try {
+      const user = interaction.options.getUser("user");
 
-    const endsAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+      /* =========================
+         🔍 التحقق من الإعدادات
+      ========================= */
+      if (!fs.existsSync(configFile)) {
+        return interaction.reply({
+          content: "❌ لم يتم تحديد كاتيجوري الشوب بعد",
+          ephemeral: true
+        });
+      }
 
-    const channel = await interaction.guild.channels.create({
-      name: `shop-${user.username}`,
-      type: 0,
-      parent: config.categoryId,
-      permissionOverwrites: [
-        {
-          id: interaction.guild.id,
-          deny: ["SendMessages"]
-        },
-        {
-          id: user.id,
-          allow: ["ViewChannel", "SendMessages"]
-        }
-      ]
-    });
+      const config = JSON.parse(fs.readFileSync(configFile, "utf8"));
+      if (!config.categoryId) {
+        return interaction.reply({
+          content: "❌ كاتيجوري الشوب غير محفوظة",
+          ephemeral: true
+        });
+      }
 
-    const embed = new EmbedBuilder()
-      .setTitle("🛒 شوب مؤجر")
-      .setColor(0x2b2d31)
-      .setDescription(
-        `👤 **المالك:** <@${user.id}>\n` +
-        `📅 **تاريخ البداية:** <t:${Math.floor(Date.now()/1000)}>\n` +
-        `⏳ **تاريخ الانتهاء:** <t:${Math.floor(endsAt/1000)}>`
-      )
-      .setFooter({ text: "Obscura • Shop System" });
+      const category = interaction.guild.channels.cache.get(config.categoryId);
+      if (!category || category.type !== ChannelType.GuildCategory) {
+        return interaction.reply({
+          content: "❌ كاتيجوري الشوب غير موجودة أو تم حذفها، استخدم /set-shop-category من جديد",
+          ephemeral: true
+        });
+      }
 
-    await channel.send({ embeds: [embed] });
+      /* =========================
+         ⛔ منع تكرار الشوب لنفس الشخص
+      ========================= */
+      const shops = fs.existsSync(shopsFile)
+        ? JSON.parse(fs.readFileSync(shopsFile, "utf8"))
+        : {};
 
-    const shops = fs.existsSync(shopsFile)
-      ? JSON.parse(fs.readFileSync(shopsFile))
-      : {};
+      const alreadyHasShop = Object.values(shops).some(
+        shop => shop.ownerId === user.id
+      );
 
-    shops[channel.id] = {
-      ownerId: user.id,
-      endsAt
-    };
+      if (alreadyHasShop) {
+        return interaction.reply({
+          content: "❌ هذا المستخدم لديه شوب مفتوح بالفعل",
+          ephemeral: true
+        });
+      }
 
-    fs.writeFileSync(shopsFile, JSON.stringify(shops, null, 2));
+      /* =========================
+         🕒 حساب مدة الشوب (7 أيام)
+      ========================= */
+      const startsAt = Date.now();
+      const endsAt = startsAt + 7 * 24 * 60 * 60 * 1000;
 
-    interaction.reply({ content: `✅ تم فتح شوب لـ ${user.tag}`, ephemeral: true });
+      /* =========================
+         📢 إنشاء روم الشوب
+      ========================= */
+      const channel = await interaction.guild.channels.create({
+        name: `shop-${user.username}`.toLowerCase(),
+        type: ChannelType.GuildText,
+        parent: category.id,
+        permissionOverwrites: [
+          {
+            id: interaction.guild.id,
+            deny: ["ViewChannel"]
+          },
+          {
+            id: user.id,
+            allow: ["ViewChannel", "SendMessages", "ReadMessageHistory"]
+          }
+        ]
+      });
+
+      /* =========================
+         🧾 Embed معلومات الشوب
+      ========================= */
+      const embed = new EmbedBuilder()
+        .setColor(0x2b2d31)
+        .setTitle("🛒 شوب مؤجَّر")
+        .setDescription(
+          `👤 **المالك:** <@${user.id}>\n\n` +
+          `📅 **تاريخ البداية:** <t:${Math.floor(startsAt / 1000)}:F>\n` +
+          `⏳ **تاريخ الانتهاء:** <t:${Math.floor(endsAt / 1000)}:F>\n\n` +
+          `⚠️ الروم مخصص للمالك فقط`
+        )
+        .setFooter({ text: "Obscura • Shop System" });
+
+      await channel.send({ embeds: [embed] });
+
+      /* =========================
+         💾 حفظ البيانات
+      ========================= */
+      shops[channel.id] = {
+        ownerId: user.id,
+        endsAt
+      };
+
+      fs.writeFileSync(shopsFile, JSON.stringify(shops, null, 2));
+
+      /* =========================
+         ✅ رد نهائي
+      ========================= */
+      await interaction.reply({
+        content: `✅ تم فتح شوب لـ ${user.tag}`,
+        ephemeral: true
+      });
+
+    } catch (err) {
+      console.error("OPEN SHOP ERROR:", err);
+
+      if (!interaction.replied) {
+        await interaction.reply({
+          content: "❌ حصل خطأ أثناء فتح الشوب",
+          ephemeral: true
+        });
+      }
+    }
   }
 };
