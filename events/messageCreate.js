@@ -7,7 +7,7 @@ module.exports = {
     if (message.author.bot) return;
 
     /* =========================
-       أمر تجريبي
+       أمر ping (تجريبي)
     ========================= */
     if (message.content.toLowerCase() === "ping") {
       return message.reply("pong 🏓");
@@ -18,10 +18,7 @@ module.exports = {
        الاستخدام: نداء @user
     ========================= */
 
-    const args = message.content.trim().split(/\s+/);
-
-    // الكلمة المفتاحية
-    if (args[0] !== "نداء") return;
+    if (!message.content.startsWith("نداء")) return;
 
     // تحقق الصلاحيات
     const member = message.member;
@@ -32,33 +29,50 @@ module.exports = {
       return;
     }
 
-    // لازم منشن
-    const mention =
-      message.mentions.users.first() ||
-      message.mentions.roles.first();
+    // لازم منشن مستخدم
+    const targetUser = message.mentions.users.first();
+    if (!targetUser) {
+      return message.reply("❌ لازم تعمل منشن للشخص");
+    }
 
-    if (!mention) return;
-
-    // Embed النداء
-    const embed = new EmbedBuilder()
+    /* =========================
+       Embed النداء في الشات
+    ========================= */
+    const channelEmbed = new EmbedBuilder()
       .setColor(0xe74c3c)
       .setTitle("📢 نداء إداري")
       .setDescription(
-        `🔔 **تم استدعاؤك**\n\n` +
         `👤 **المنادي:** ${message.author}\n` +
         `📍 **الروم:** ${message.channel}\n\n` +
-        `${mention}`
+        `🔔 **تم استدعاء:** ${targetUser}`
       )
       .setFooter({ text: "Obscura • Admin Call System" })
       .setTimestamp();
 
-    // إرسال النداء
     await message.channel.send({
-      content: `${mention}`,
-      embeds: [embed]
+      content: `${targetUser}`,
+      embeds: [channelEmbed]
     });
 
-    // (اختياري) مسح رسالة الأمر
-    // await message.delete().catch(() => {});
+    /* =========================
+       📩 DM للشخص
+    ========================= */
+    try {
+      const dmEmbed = new EmbedBuilder()
+        .setColor(0xe74c3c)
+        .setTitle("📢 نداء إداري")
+        .setDescription(
+          `👤 **المنادي:** ${message.author}\n` +
+          `🏠 **السيرفر:** ${message.guild.name}\n` +
+          `📍 **الروم:** ${message.channel}\n\n` +
+          `🔔 تم استدعاؤك من الإدارة`
+        )
+        .setFooter({ text: "Obscura • Admin Call System" })
+        .setTimestamp();
+
+      await targetUser.send({ embeds: [dmEmbed] });
+    } catch (err) {
+      console.log("❌ لم أتمكن من إرسال DM");
+    }
   }
 };
