@@ -7,7 +7,7 @@ module.exports = {
     if (message.author.bot) return;
 
     /* =========================
-       أمر ping (تجريبي)
+       أمر ping (اختياري)
     ========================= */
     if (message.content.toLowerCase() === "ping") {
       return message.reply("pong 🏓");
@@ -17,7 +17,6 @@ module.exports = {
        📢 أمر النداء (Admin Only)
        الاستخدام: نداء @user
     ========================= */
-
     if (!message.content.startsWith("نداء")) return;
 
     // تحقق الصلاحيات
@@ -36,26 +35,12 @@ module.exports = {
     }
 
     /* =========================
-       Embed النداء في الشات
+       ✅ رد في الشات العام فقط
     ========================= */
-    const channelEmbed = new EmbedBuilder()
-      .setColor(0xe74c3c)
-      .setTitle("📢 نداء إداري")
-      .setDescription(
-        `👤 **المنادي:** ${message.author}\n` +
-        `📍 **الروم:** ${message.channel}\n\n` +
-        `🔔 **تم استدعاء:** ${targetUser}`
-      )
-      .setFooter({ text: "Obscura • Admin Call System" })
-      .setTimestamp();
-
-    await message.channel.send({
-      content: `${targetUser}`,
-      embeds: [channelEmbed]
-    });
+    await message.channel.send("✅ **تم الاستدعاء**");
 
     /* =========================
-       📩 DM للشخص
+       📩 DM بالإيمبد فقط
     ========================= */
     try {
       const dmEmbed = new EmbedBuilder()
@@ -72,7 +57,8 @@ module.exports = {
 
       await targetUser.send({ embeds: [dmEmbed] });
     } catch (err) {
-      console.log("❌ لم أتمكن من إرسال DM");
+      // لو الـ DM مقفول
+      await message.channel.send("⚠️ لم أتمكن من إرسال رسالة خاصة للمستخدم");
     }
   }
 };
