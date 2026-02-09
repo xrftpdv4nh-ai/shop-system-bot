@@ -114,26 +114,46 @@ module.exports = {
     /* =========================
    4️⃣ استقبال مودال نشر الإعلان
 ========================= */
-if (interaction.isModalSubmit() && interaction.customId === "post_ad_modal") {
-  const script = interaction.fields.getTextInputValue("ad_script");
-  let mention = interaction.fields.getTextInputValue("ad_mention") || "none";
+module.exports = {
+  name: "interactionCreate",
+  async execute(interaction) {
 
-  mention = mention.toLowerCase();
+    // ... كود Slash Commands
 
-  let mentionText = "";
-  if (mention === "here") mentionText = "@here";
-  if (mention === "everyone") mentionText = "@everyone";
+    // ... كود زر التشفير + encrypt_modal
 
-  // تأكيد للأدمن
-  await interaction.reply({
-    content: "✅ تم نشر الإعلان بنجاح",
-    ephemeral: true
-  });
+    /* =========================
+       4️⃣ استقبال مودال نشر الإعلان
+    ========================= */
+    if (interaction.isModalSubmit() && interaction.customId === "post_ad_modal") {
+      const script = interaction.fields.getTextInputValue("ad_script");
+      let mention = interaction.fields.getTextInputValue("ad_mention") || "none";
 
-  // نشر الإعلان في نفس الروم
-  await interaction.channel.send({
-    content: `${mentionText}\n${script}`
-  });
-}
+      mention = mention.toLowerCase();
+
+      let mentionText = "";
+      if (mention === "here") mentionText = "@here";
+      if (mention === "everyone") mentionText = "@everyone";
+
+      const { EmbedBuilder } = require("discord.js");
+
+      const adEmbed = new EmbedBuilder()
+        .setColor(0x2b2d31)
+        .setDescription(`**${script}**`)
+        .setFooter({ text: "Obscura • Official Advertisement" });
+
+      await interaction.reply({
+        content: "✅ تم نشر الإعلان بنجاح",
+        ephemeral: true
+      });
+
+      await interaction.channel.send({
+        content: mentionText || null,
+        embeds: [adEmbed]
+      });
+    }
+
+  }
+};
   }
 };
