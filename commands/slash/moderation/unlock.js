@@ -1,11 +1,20 @@
-// unlock.js
 const { SlashCommandBuilder } = require("discord.js");
 const hasAdminAccess = require("../../../utils/permissions");
+
 module.exports = {
   data: new SlashCommandBuilder().setName("unlock").setDescription("فتح الروم"),
-  async execute(i){
-    if(!hasAdminAccess(i.member)) return i.reply({content:"❌",ephemeral:true});
-    await i.channel.permissionOverwrites.edit(i.guild.id,{ SendMessages:true });
-    i.reply("🔓 تم فتح الروم");
+
+  async execute(interaction) {
+    if (!hasAdminAccess(interaction.member))
+      return interaction.reply({ content: "❌ صلاحيات غير كافية", ephemeral: true });
+
+    await interaction.deferReply({ ephemeral: true });
+
+    await interaction.channel.permissionOverwrites.edit(
+      interaction.guild.id,
+      { SendMessages: true }
+    );
+
+    await interaction.editReply("🔓 تم فتح الروم");
   }
 };
