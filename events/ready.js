@@ -9,15 +9,11 @@ module.exports = {
   async execute(client) {
     console.log(`✅ Logged in as ${client.user.tag}`);
 
-    // Presence
     client.user.setPresence({
       activities: [{ name: "System Shop | Setup" }],
       status: "online"
     });
 
-    /* =========================
-       🔁 تحميل الشوبات بعد الريستارت
-    ========================= */
     if (!fs.existsSync(shopsFile)) {
       console.log("ℹ️ No shops.json found");
       return;
@@ -34,11 +30,18 @@ module.exports = {
     let changed = false;
 
     for (const [channelId, shopData] of Object.entries(shops)) {
-      const channel = client.channels.cache.get(channelId);
+      let channel;
 
-      // لو الروم اتحذفت يدوي
+      try {
+        // ✅ fetch من API مش cache
+        channel = await client.channels.fetch(channelId);
+      } catch {
+        channel = null;
+      }
+
+      // لو الروم اتحذفت فعلًا
       if (!channel) {
-        console.log(`🗑️ Missing shop channel removed: ${channelId}`);
+        console.log(`🗑️ Shop channel not found, removing: ${channelId}`);
         delete shops[channelId];
         changed = true;
         continue;
@@ -54,15 +57,14 @@ module.exports = {
         }
         delete shops[channelId];
         changed = true;
-        continue;
       }
     }
 
     if (changed) {
       fs.writeFileSync(shopsFile, JSON.stringify(shops, null, 2));
-      console.log("💾 Shops file synced after restart");
+      console.log("💾 Shops synced after restart");
     } else {
-      console.log("✅ All shops restored successfully");
+      console.log("✅ All shops restored correctly");
     }
   }
 };
