@@ -77,21 +77,57 @@ module.exports = {
       const endsAt = startsAt + 7 * 24 * 60 * 60 * 1000;
 
       /* =========================
-         📢 إنشاء روم الشوب
+         📢 إنشاء روم الشوب (الصلاحيات المعدّلة)
       ========================= */
+
+      // نحاول نجيب أي رول عنده Administrator
+      const adminRole = interaction.guild.roles.cache.find(
+        r => r.permissions.has("Administrator")
+      );
+
       const channel = await interaction.guild.channels.create({
         name: `shop-${user.username}`.toLowerCase(),
         type: ChannelType.GuildText,
         parent: category.id,
         permissionOverwrites: [
+          // 👁️ الجميع يشوف فقط
           {
-            id: interaction.guild.id,
-            deny: ["ViewChannel"]
+            id: interaction.guild.roles.everyone.id,
+            allow: ["ViewChannel"],
+            deny: [
+              "SendMessages",
+              "AddReactions",
+              "CreatePublicThreads",
+              "CreatePrivateThreads"
+            ]
           },
+
+          // 🛒 صاحب الشوب
           {
             id: user.id,
-            allow: ["ViewChannel", "SendMessages", "ReadMessageHistory"]
-          }
+            allow: [
+              "ViewChannel",
+              "SendMessages",
+              "AttachFiles",
+              "EmbedLinks",
+              "AddReactions",
+              "ReadMessageHistory"
+            ]
+          },
+
+          // 🛡️ الإدمن (لو فيه رول Admin)
+          ...(adminRole
+            ? [{
+                id: adminRole.id,
+                allow: [
+                  "ViewChannel",
+                  "SendMessages",
+                  "ManageChannels",
+                  "ManageMessages",
+                  "AddReactions"
+                ]
+              }]
+            : [])
         ]
       });
 
@@ -105,7 +141,7 @@ module.exports = {
           `👤 **المالك:** <@${user.id}>\n\n` +
           `📅 **تاريخ البداية:** <t:${Math.floor(startsAt / 1000)}:F>\n` +
           `⏳ **تاريخ الانتهاء:** <t:${Math.floor(endsAt / 1000)}:F>\n\n` +
-          `⚠️ الروم مخصص للمالك فقط`
+          `⚠️ الروم مخصص للنشر بواسطة المالك فقط`
         )
         .setFooter({ text: "Obscura • Shop System" });
 
@@ -116,7 +152,8 @@ module.exports = {
       ========================= */
       shops[channel.id] = {
         ownerId: user.id,
-        endsAt
+        endsAt,
+        warnings: 0
       };
 
       fs.writeFileSync(shopsFile, JSON.stringify(shops, null, 2));
