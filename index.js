@@ -10,13 +10,19 @@ const {
 
 // ⬅️ ربط MongoDB
 const connectDB = require("./database/connect");
+const { Client, GatewayIntentBits, Partials } = require("discord.js");
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+    GatewayIntentBits.MessageContent,
+
+    // 👇 مهمين لنظام الإنفايت
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildInvites
+  ],
+  partials: [Partials.GuildMember]
 });
 
 /* =======================
