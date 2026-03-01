@@ -6,6 +6,7 @@ const {
 function encryptText(text) {
   return Buffer.from(text, "utf-8").toString("base64");
 }
+
 module.exports = {
   name: "interactionCreate",
   async execute(interaction) {
@@ -38,34 +39,107 @@ module.exports = {
     }
 
     /* =========================
-   🔘 زر تشفير المنشور
-========================= */
-if (interaction.isButton() && interaction.customId === "encrypt_post") {
+       🇸🇦 زر ترجمة القوانين
+    ========================= */
+    if (interaction.isButton() && interaction.customId === "rules_ar") {
 
-  const {
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ActionRowBuilder
-  } = require("discord.js");
+      await interaction.deferReply({ ephemeral: true });
 
-  const modal = new ModalBuilder()
-    .setCustomId("encrypt_modal")
-    .setTitle("🔐 تشفير منشورك");
+      const arabicEmbed = new EmbedBuilder()
+        .setColor("#C1121F")
+        .setTitle("DealerX - القوانين الرسمية")
+        .setDescription(`
+بمجرد انضمامك إلى DealerX فأنت توافق على الالتزام بجميع القوانين التالية.
 
-  const textInput = new TextInputBuilder()
-    .setCustomId("post_text")
-    .setLabel("اكتب المنشور اللي عايز تشفره")
-    .setStyle(TextInputStyle.Paragraph)
-    .setRequired(true);
+━━━━━━━━━━━━━━━━━━
+🔹 **السلوك العام**
+1. احترام جميع الأعضاء والإدارة.
+2. يمنع الإساءة أو العنصرية أو خطاب الكراهية.
+3. يمنع المحتوى الإباحي أو غير اللائق.
+4. يمنع المحتوى العنيف أو المزعج.
+5. الالتزام بشروط استخدام ديسكورد.
+6. يمنع انتحال شخصية الإدارة أو الأعضاء.
+7. يجب أن تكون الأسماء والصور مناسبة.
+8. استخدام اللغة المسموح بها في كل روم.
 
-  const row = new ActionRowBuilder().addComponents(textInput);
-  modal.addComponents(row);
+━━━━━━━━━━━━━━━━━━
+💬 **قوانين الشات**
+9. يمنع السبام أو تكرار الرسائل.
+10. يمنع النسخ واللصق المتكرر.
+11. يمنع الإعلانات بدون إذن.
+12. يمنع نشر روابط سيرفرات أخرى.
+13. تجنب المشاكل والسلوك السام.
+14. الالتزام بموضوع الروم.
 
-  return interaction.showModal(modal);
-}
+━━━━━━━━━━━━━━━━━━
+🛠 **الدعم الفني**
+15. استخدم الروم الصحيح للدعم.
+16. اشرح مشكلتك بوضوح.
+17. لا تزعج الإدارة بدون سبب.
+18. لا تفتح أكثر من تذكرة لنفس المشكلة.
+19. البلاغات الكاذبة تعرضك للعقوبة.
+
+━━━━━━━━━━━━━━━━━━
+🤖 **قوانين البوت**
+20. يمنع استغلال أو محاولة كسر DealerX.
+21. يمنع نسخ أو سرقة البوت.
+22. البلاغات يجب أن تكون حقيقية فقط.
+
+━━━━━━━━━━━━━━━━━━
+🔐 **الخصوصية**
+23. يمنع مشاركة معلومات شخصية.
+24. يمنع الروابط الخبيثة أو الاحتيالية.
+
+━━━━━━━━━━━━━━━━━━
+⚖ **التنفيذ**
+25. قرارات الإدارة نهائية.
+26. العقوبات تصاعدية حسب المخالفة.
+27. محاولة الهروب من العقوبة تؤدي لعقوبة أشد.
+28. الجهل بالقوانين ليس عذرًا.
+29. القوانين قابلة للتحديث في أي وقت.
+
+━━━━━━━━━━━━━━━━━━
+DealerX Protection System
+        `)
+        .setImage("https://i.ibb.co/mFzrdBz6/D95-FDA5-A-CA9-C-40-D6-B6-F9-AEA8957-E7-D58.jpg");
+
+      await interaction.editReply({
+        embeds: [arabicEmbed]
+      });
+
+      return;
+    }
+
     /* =========================
-       2️⃣ مودال التشفير
+       🔘 زر تشفير المنشور
+    ========================= */
+    if (interaction.isButton() && interaction.customId === "encrypt_post") {
+
+      const {
+        ModalBuilder,
+        TextInputBuilder,
+        TextInputStyle,
+        ActionRowBuilder
+      } = require("discord.js");
+
+      const modal = new ModalBuilder()
+        .setCustomId("encrypt_modal")
+        .setTitle("🔐 تشفير منشورك");
+
+      const textInput = new TextInputBuilder()
+        .setCustomId("post_text")
+        .setLabel("اكتب المنشور اللي عايز تشفره")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true);
+
+      const row = new ActionRowBuilder().addComponents(textInput);
+      modal.addComponents(row);
+
+      return interaction.showModal(modal);
+    }
+
+    /* =========================
+       مودال التشفير
     ========================= */
     if (interaction.isModalSubmit() && interaction.customId === "encrypt_modal") {
       const originalText = interaction.fields.getTextInputValue("post_text");
@@ -78,146 +152,6 @@ if (interaction.isButton() && interaction.customId === "encrypt_post") {
           "\n📋 انسخ النص وانشره بنفسك",
         ephemeral: true
       });
-    }
-
-    /* =========================
-       3️⃣ مودال نشر الإعلان
-    ========================= */
-    if (interaction.isModalSubmit() && interaction.customId === "post_ad_modal") {
-      try {
-        await interaction.deferReply({ ephemeral: true });
-
-        const script = interaction.fields.getTextInputValue("ad_script");
-        let mention = interaction.fields.getTextInputValue("ad_mention") || "none";
-        mention = mention.toLowerCase();
-
-        let mentionText = "";
-        if (mention === "here") mentionText = "@here";
-        if (mention === "everyone") mentionText = "@everyone";
-
-        const adEmbed = new EmbedBuilder()
-          .setColor(0x2b2d31)
-          .setTitle("📢 إعلان")
-          .setDescription(`**${script}**`)
-          .setFooter({ text: "Obscura • Official Advertisement" });
-
-        await interaction.channel.send({
-          content: mentionText || undefined,
-          embeds: [adEmbed]
-        });
-
-        await interaction.editReply("✅ تم نشر الإعلان بنجاح");
-
-      } catch (err) {
-        console.error("POST AD ERROR:", err);
-        if (!interaction.replied) {
-          await interaction.reply({
-            content: "❌ حصل خطأ أثناء نشر الإعلان",
-            ephemeral: true
-          });
-        }
-      }
-      return;
-    }
-
-    /* =========================
-       4️⃣ Help Select Menu
-    ========================= */
-    if (interaction.isStringSelectMenu() && interaction.customId === "help_menu") {
-      const value = interaction.values[0];
-      const isAdmin =
-        interaction.member.permissions.has(PermissionFlagsBits.Administrator) ||
-        interaction.member.permissions.has(PermissionFlagsBits.ManageGuild);
-
-      /* 👑 أوامر الإدارة */
-      if (value === "admin") {
-        if (!isAdmin) {
-          return interaction.reply({
-            content: "❌ هذه الأوامر مخصصة للإدارة فقط",
-            ephemeral: true
-          });
-        }
-
-        const adminEmbed = new EmbedBuilder()
-          .setColor(0xe74c3c)
-          .setTitle("👑 أوامر الإدارة")
-          .setDescription(
-            "**الإشراف:**\n" +
-            "• ban — حظر عضو\n" +
-            "• unban — فك الحظر\n" +
-            "• timeout — تايم أوت\n" +
-            "• untimeout — فك التايم أوت\n" +
-            "• intimeout — تايم أوت داخل روم\n" +
-            "• mute — ميوت\n" +
-            "• unmute — فك الميوت\n\n" +
-
-            "**الرومات:**\n" +
-            "• lock — قفل روم\n" +
-            "• unlock — فتح روم\n" +
-            "• hide — إخفاء روم\n" +
-            "• show — إظهار روم\n\n" +
-
-            "**الرتب:**\n" +
-            "• addrole — إضافة رول\n" +
-            "• removerole — إزالة رول\n\n" +
-
-            "**الإعلانات والتشفير:**\n" +
-            "• post-ad — نشر إعلان\n" +
-            "• set-encrypt — إعداد التشفير\n\n" +
-
-            "**النداء:**\n" +
-            "• نداء @user — نداء إداري"
-          )
-          .setFooter({ text: "Obscura • Admin Commands" });
-
-        return interaction.reply({
-          embeds: [adminEmbed],
-          ephemeral: true
-        });
-      }
-
-      /* 🛒 أوامر الشوب */
-      if (value === "shop") {
-        if (!isAdmin) {
-          return interaction.reply({
-            content: "❌ أوامر الشوب مخصصة للإدارة فقط",
-            ephemeral: true
-          });
-        }
-
-        const shopEmbed = new EmbedBuilder()
-          .setColor(0x4b0082)
-          .setTitle("🛒 أوامر الشوب")
-          .setDescription(
-            "• open-shop — فتح شوب\n" +
-            "• renew-shop — تجديد شوب\n" +
-            "• warn-shop — تحذير شوب\n" +
-            "• unwarn-shop — إزالة تحذير\n" +
-            "• set-shop-category — تحديد كاتيجوري الشوب"
-          )
-          .setFooter({ text: "Obscura • Shop System" });
-
-        return interaction.reply({
-          embeds: [shopEmbed],
-          ephemeral: true
-        });
-      }
-
-      /* 👥 أوامر عامة */
-      if (value === "public") {
-        const publicEmbed = new EmbedBuilder()
-          .setColor(0x1e90ff)
-          .setTitle("👥 أوامر عامة")
-          .setDescription(
-            "• help — عرض قائمة الأوامر"
-          )
-          .setFooter({ text: "Obscura • Public Commands" });
-
-        return interaction.reply({
-          embeds: [publicEmbed],
-          ephemeral: true
-        });
-      }
     }
 
   }
