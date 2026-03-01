@@ -23,36 +23,55 @@ const client = new Client({
   ],
   partials: [Partials.GuildMember]
 });
+
+const PREFIX = "$";
+
+client.commands = new Collection();      // Slash
+client.prefixCommands = new Collection(); // Prefix
+
+/* =======================
+   Prefix Commands Loader
+======================= */
+
+const prefixPath = path.join(__dirname, "commands", "prefix");
+if (fs.existsSync(prefixPath)) {
+  const prefixFiles = fs
+    .readdirSync(prefixPath)
+    .filter(file => file.endsWith(".js"));
+
+  for (const file of prefixFiles) {
+    const command = require(`./commands/prefix/${file}`);
+    if (!command.name || !command.execute) continue;
+
+    client.prefixCommands.set(command.name, command);
+  }
+}
+
 /* =======================
    Slash Commands Loader
 ======================= */
 
-client.commands = new Collection();
-const commands = [];
+const slashCommands = [];
 
-const commandsPath = path.join(__dirname, "commands", "slash");
-if (fs.existsSync(commandsPath)) {
-  const commandFolders = fs.readdirSync(commandsPath);
+const slashPath = path.join(__dirname, "commands", "slash");
+if (fs.existsSync(slashPath)) {
+  const folders = fs.readdirSync(slashPath);
 
-  for (const folder of commandFolders) {
-    const folderPath = path.join(commandsPath, folder);
+  for (const folder of folders) {
+    const folderPath = path.join(slashPath, folder);
     if (!fs.statSync(folderPath).isDirectory()) continue;
 
-    const commandFiles = fs
+    const files = fs
       .readdirSync(folderPath)
       .filter(file => file.endsWith(".js"));
 
-    for (const file of commandFiles) {
-      const filePath = path.join(folderPath, file);
-      const command = require(filePath);
+    for (const file of files) {
+      const command = require(`./commands/slash/${folder}/${file}`);
 
-      if (!command.data || !command.execute) {
-        console.log(`⚠️ Command skipped: ${file}`);
-        continue;
-      }
+      if (!command.data || !command.execute) continue;
 
       client.commands.set(command.data.name, command);
-      commands.push(command.data.toJSON());
+      slashCommands.push(command.data.toJSON());
     }
   }
 }
@@ -72,12 +91,82 @@ if (fs.existsSync(eventsPath)) {
     if (!event.name || !event.execute) continue;
 
     if (event.once) {
-      client.once(event.name, (...args) => event.execute(...args, client));
+      client.once(event.name, (...args) =>
+        event.execute(...args, client)
+      );
     } else {
-      client.on(event.name, (...args) => event.execute(...args, client));
+      client.on(event.name, (...args) =>
+        event.execute(...args, client)
+      );
     }
   }
 }
+
+/* =======================
+   Prefix Handler
+======================= */
+
+client.on("messageCreate", async (message) => {
+  if (!message.content.startsWith(PREFIX)) return;
+  if (message.author.bot) return;
+
+  const args = message.content.slice(PREFIX.length).trim().split(/ +/);
+  const commandName = args.shift().toLowerCase();
+
+  const command = client.prefixCommands.get(commandName);
+  if (!command) return;
+
+  try {
+    await command.execute(message, args, client);
+  } catch (error) {
+    console.error(error);
+    message.reply("❌ حدث خطأ أثناء تنفيذ الأمر.");
+  }
+});
+
+/* =======================
+   Slash Handler
+======================= */
+
+client.on("interactionCreate", async (interaction) => {
+
+  // Slash
+  if (interaction.isChatInputCommand()) {
+    const command = client.commands.get(interaction.commandName);
+    if (!command) return;
+
+    try {
+      await command.execute(interaction, client);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({
+        content: "❌ Error executing command.",
+        ephemeral: true
+      });
+    }
+  }
+
+  // Buttons (زي ترجمة القوانين)
+  if (interaction.isButton()) {
+
+    if (interaction.customId === "rules_ar") {
+
+      const { EmbedBuilder } = require("discord.js");
+
+      const arabicEmbed = new EmbedBuilder()
+        .setColor("#C1121F")
+        .setTitle("DealerX - القوانين الرسمية")
+        .setDescription("تم عرض النسخة العربية للقوانين.");
+
+      await interaction.reply({
+        embeds: [arabicEmbed],
+        ephemeral: true
+      });
+    }
+
+  }
+
+});
 
 /* =======================
    Register Slash Commands
@@ -86,8 +175,8 @@ if (fs.existsSync(eventsPath)) {
 client.once("ready", async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 
-  if (commands.length === 0) {
-    console.log("ℹ️ No slash commands to register");
+  if (slashCommands.length === 0) {
+    console.log("ℹ️ No slash commands found.");
     return;
   }
 
@@ -96,19 +185,20 @@ client.once("ready", async () => {
   try {
     await rest.put(
       Routes.applicationCommands(client.user.id),
-      { body: commands }
+      { body: slashCommands }
     );
-    console.log("✅ Slash commands registered");
+
+    console.log("✅ Slash commands registered.");
   } catch (error) {
     console.error("❌ Failed to register slash commands:", error);
   }
 });
 
 /* =======================
-   Start Bot (Mongo + Discord)
+   Start Bot
 ======================= */
 
 (async () => {
-  await connectDB();              // ⬅️ يتأكد إن Mongo اشتغل
-  await client.login(process.env.TOKEN); // ⬅️ توكن من Railway
+  await connectDB();
+  await client.login(process.env.TOKEN);
 })();
