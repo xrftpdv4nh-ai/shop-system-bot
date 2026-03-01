@@ -2,22 +2,38 @@ const fs = require("fs");
 const path = require("path");
 const { ActivityType } = require("discord.js");
 
-client.once("ready", () => {
-  const totalUsers = client.guilds.cache.reduce(
-    (acc, guild) => acc + guild.memberCount,
-    0
-  );
+const shopsFile = path.join(__dirname, "../database/shops.json");
 
-  client.user.setPresence({
-    activities: [
-      {
-        name: `/help | Serving ${totalUsers.toLocaleString()} users`,
-        type: ActivityType.Playing
-      }
-    ],
-    status: "online"
-  });
-});
+module.exports = {
+  name: "ready",
+  once: true,
+  async execute(client) {
+    console.log(`✅ Logged in as ${client.user.tag}`);
+
+    // 🔥 تحديث عدد السيرفرات تلقائي
+    const updatePresence = () => {
+      const totalServers = client.guilds.cache.size;
+
+      client.user.setPresence({
+        activities: [
+          {
+            name: `DealerX in ${totalServers} Servers`,
+            type: ActivityType.Listening
+          }
+        ],
+        status: "online"
+      });
+    };
+
+    // تحديث أول مرة
+    updatePresence();
+
+    // تحديث كل 5 دقائق
+    setInterval(updatePresence, 5 * 60 * 1000);
+
+    // ==========================
+    // 🔄 استرجاع الشوبات بعد الريستارت
+    // ==========================
 
     if (!fs.existsSync(shopsFile)) {
       console.log("ℹ️ No shops.json found");
