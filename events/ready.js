@@ -9,8 +9,10 @@ module.exports = {
   async execute(client) {
     console.log(`✅ Logged in as ${client.user.tag}`);
 
+    // 🔥 مسح أي Activity
     client.user.setPresence({
-      status: "online"
+      status: "online",
+      activities: []
     });
 
     if (!fs.existsSync(shopsFile)) {
