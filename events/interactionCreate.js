@@ -35,6 +35,33 @@ module.exports = {
     }
 
     /* =========================
+   🔘 زر تشفير المنشور
+========================= */
+if (interaction.isButton() && interaction.customId === "encrypt_post") {
+
+  const {
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder
+  } = require("discord.js");
+
+  const modal = new ModalBuilder()
+    .setCustomId("encrypt_modal")
+    .setTitle("🔐 تشفير منشورك");
+
+  const textInput = new TextInputBuilder()
+    .setCustomId("post_text")
+    .setLabel("اكتب المنشور اللي عايز تشفره")
+    .setStyle(TextInputStyle.Paragraph)
+    .setRequired(true);
+
+  const row = new ActionRowBuilder().addComponents(textInput);
+  modal.addComponents(row);
+
+  return interaction.showModal(modal);
+}
+    /* =========================
        2️⃣ مودال التشفير
     ========================= */
     if (interaction.isModalSubmit() && interaction.customId === "encrypt_modal") {
