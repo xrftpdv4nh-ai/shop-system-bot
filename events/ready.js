@@ -2,24 +2,22 @@ const fs = require("fs");
 const path = require("path");
 const { ActivityType } = require("discord.js");
 
-const shopsFile = path.join(__dirname, "../database/shops.json");
+client.once("ready", () => {
+  const totalUsers = client.guilds.cache.reduce(
+    (acc, guild) => acc + guild.memberCount,
+    0
+  );
 
-module.exports = {
-  name: "ready",
-  once: true,
-  async execute(client) {
-    console.log(`✅ Logged in as ${client.user.tag}`);
-
-    // 🔥 Presence عادي برسالة بسيطة
-    client.user.setPresence({
-      activities: [
-        {
-          name: "/help | DealerX Shop System",
-          type: ActivityType.Playing
-        }
-      ],
-      status: "online"
-    });
+  client.user.setPresence({
+    activities: [
+      {
+        name: `/help | Serving ${totalUsers.toLocaleString()} users`,
+        type: ActivityType.Playing
+      }
+    ],
+    status: "online"
+  });
+});
 
     if (!fs.existsSync(shopsFile)) {
       console.log("ℹ️ No shops.json found");
