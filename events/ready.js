@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { ActivityType } = require("discord.js");
 
 const shopsFile = path.join(__dirname, "../database/shops.json");
 
@@ -9,10 +10,15 @@ module.exports = {
   async execute(client) {
     console.log(`✅ Logged in as ${client.user.tag}`);
 
-    // 🔥 مسح أي Activity
+    // 🔥 Presence عادي برسالة بسيطة
     client.user.setPresence({
-      status: "online",
-      activities: []
+      activities: [
+        {
+          name: "/help | DealerX Shop System",
+          type: ActivityType.Playing
+        }
+      ],
+      status: "online"
     });
 
     if (!fs.existsSync(shopsFile)) {
@@ -34,13 +40,11 @@ module.exports = {
       let channel;
 
       try {
-        // ✅ fetch من API مش cache
         channel = await client.channels.fetch(channelId);
       } catch {
         channel = null;
       }
 
-      // لو الروم اتحذفت فعلًا
       if (!channel) {
         console.log(`🗑️ Shop channel not found, removing: ${channelId}`);
         delete shops[channelId];
@@ -48,7 +52,6 @@ module.exports = {
         continue;
       }
 
-      // لو الشوب انتهى
       if (shopData.endsAt && Date.now() > shopData.endsAt) {
         console.log(`⏰ Shop expired, deleting: ${channel.name}`);
         try {
