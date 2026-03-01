@@ -48,9 +48,9 @@ if (interaction.isButton() && interaction.customId === "about_ar") {
 
     const arabicEmbed = new EmbedBuilder()
       .setColor("#C1121F")
-      .setTitle("ProLexBot - نبذة عنا")
+      .setTitle("DealerX - نبذة عنا")
       .setDescription(`
-ProLexBot هو بوت متعدد الاستخدامات مصمم لتقديم أنظمة إشراف وأتمتة قوية.
+DealerX هو بوت متعدد الاستخدامات مصمم لتقديم أنظمة إشراف وأتمتة قوية.
 
 ⚙️ **مميزات البوت**
 • أنظمة حماية متقدمة
@@ -69,7 +69,7 @@ ProLexBot هو بوت متعدد الاستخدامات مصمم لتقديم أ
 قد يتم تعديل الميزات في أي وقت.
       `)
       .setImage("https://i.ibb.co/SDx5rcY3/E6-EE14-C0-2-BB2-4-A46-836-C-887197-F80-F65.jpg")
-      .setFooter({ text: "ProLexBot • Official System" })
+      .setFooter({ text: "DealerX • Official System" })
       .setTimestamp();
 
     await interaction.editReply({
