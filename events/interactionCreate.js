@@ -196,5 +196,24 @@ DealerX Protection System
       });
     }
 
+    if (interaction.isStringSelectMenu() && interaction.customId === "help_menu") {
+
+  await interaction.deferReply({ ephemeral: true });
+
+  const value = interaction.values[0];
+
+  if (value === "public") {
+    return interaction.editReply({
+      content: "Public Commands Here"
+    });
+  }
+
+  if (value === "admin") {
+    return interaction.editReply({
+      content: "Admin Commands Here"
+    });
+  }
+}
+
   }
 };
