@@ -39,6 +39,48 @@ module.exports = {
     }
 
     /* =========================
+   🇪🇬 About Translation Button
+========================= */
+if (interaction.isButton() && interaction.customId === "about_ar") {
+
+  try {
+    await interaction.deferReply({ ephemeral: true });
+
+    const arabicEmbed = new EmbedBuilder()
+      .setColor("#C1121F")
+      .setTitle("ProLexBot - نبذة عنا")
+      .setDescription(`
+ProLexBot هو بوت متعدد الاستخدامات مصمم لتقديم أنظمة إشراف وأتمتة قوية.
+
+⚙️ **مميزات البوت**
+• أنظمة حماية متقدمة
+• رتب تلقائية ونظام ترحيب
+• اقتصاد ونشاط
+• ألعاب وترفيه
+• سحوبات وأدوات خدمية
+• تحديثات مستمرة
+
+👑 **الملكية والحقوق**
+جميع الحقوق محفوظة.
+يمنع نسخ أو بيع أو تقليد البوت.
+
+ℹ️ **معلومات مهمة**
+غير تابع لـ Discord.
+قد يتم تعديل الميزات في أي وقت.
+      `)
+      .setImage("https://i.ibb.co/SDx5rcY3/E6-EE14-C0-2-BB2-4-A46-836-C-887197-F80-F65.jpg")
+      .setFooter({ text: "ProLexBot • Official System" })
+      .setTimestamp();
+
+    await interaction.editReply({
+      embeds: [arabicEmbed]
+    });
+
+  } catch (err) {
+    console.error("ABOUT BUTTON ERROR:", err);
+  }
+}
+    /* =========================
        🇸🇦 زر ترجمة القوانين
     ========================= */
     if (interaction.isButton() && interaction.customId === "rules_ar") {
