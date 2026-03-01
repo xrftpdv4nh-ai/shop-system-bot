@@ -1,4 +1,14 @@
-const { EmbedBuilder, PermissionsBitField } = require("discord.js");
+const { EmbedBuilder, PermissionsBitField, AttachmentBuilder } = require("discord.js");
+const fs = require("fs");
+const path = require("path");
+
+const lineDB = path.join(__dirname, "../database/lineChannels.json");
+const lineImage = path.join(__dirname, "../assets/line/default.PNG");
+
+// إنشاء الملف لو مش موجود
+if (!fs.existsSync(lineDB)) {
+  fs.writeFileSync(lineDB, JSON.stringify([]));
+}
 
 module.exports = {
   name: "messageCreate",
@@ -8,16 +18,61 @@ module.exports = {
 
     const content = message.content.toLowerCase();
 
+    let activeChannels = JSON.parse(fs.readFileSync(lineDB));
+
     /* =========================
-       أمر ping (اختياري)
+       أمر ping
     ========================= */
     if (content === "ping") {
       return message.reply("pong 🏓");
     }
 
     /* =========================
-       🗑️ حذف كل الرومات (Admin Only)
-       الاستخدام: $clearall
+       🖼️ تفعيل الخط
+       $تفعيل-الخط
+    ========================= */
+    if (content === "$تفعيل-الخط") {
+      if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        return message.reply("❌ الأمر للـ Administrator فقط.");
+      }
+
+      if (!activeChannels.includes(message.channel.id)) {
+        activeChannels.push(message.channel.id);
+        fs.writeFileSync(lineDB, JSON.stringify(activeChannels, null, 2));
+      }
+
+      return message.reply("✅ تم تفعيل الخط في هذه الروم.");
+    }
+
+    /* =========================
+       ❌ إلغاء الخط
+       $الغاء-الخط
+    ========================= */
+    if (content === "$الغاء-الخط") {
+      if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        return message.reply("❌ الأمر للـ Administrator فقط.");
+      }
+
+      activeChannels = activeChannels.filter(id => id !== message.channel.id);
+      fs.writeFileSync(lineDB, JSON.stringify(activeChannels, null, 2));
+
+      return message.reply("❌ تم إلغاء الخط من هذه الروم.");
+    }
+
+    /* =========================
+       إرسال الخط بعد كل رسالة
+    ========================= */
+    if (activeChannels.includes(message.channel.id)) {
+      try {
+        const attachment = new AttachmentBuilder(lineImage);
+        await message.channel.send({ files: [attachment] });
+      } catch (err) {
+        console.log("❌ خطأ في إرسال صورة الخط");
+      }
+    }
+
+    /* =========================
+       🗑️ حذف كل الرومات
     ========================= */
     if (content === "$حذف-الكل") {
       if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
@@ -27,11 +82,10 @@ module.exports = {
       await message.reply("⚠️ جاري حذف كل الرومات...");
 
       const channels = message.guild.channels.cache;
-
       for (const channel of channels.values()) {
         try {
           await channel.delete("Clear all channels command used by admin");
-        } catch (err) {
+        } catch {
           console.log(`Failed to delete ${channel.name}`);
         }
       }
@@ -40,8 +94,7 @@ module.exports = {
     }
 
     /* =========================
-       🗑️ حذف الروم الحالية فقط
-       الاستخدام: $delete
+       🗑️ حذف الروم الحالية
     ========================= */
     if (content === "$حذف") {
       if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
@@ -50,7 +103,7 @@ module.exports = {
 
       try {
         await message.channel.delete("Channel deleted by admin command");
-      } catch (err) {
+      } catch {
         return message.reply("❌ مقدرتش احذف الروم.");
       }
 
@@ -58,8 +111,7 @@ module.exports = {
     }
 
     /* =========================
-       📢 أمر النداء (Admin Only)
-       الاستخدام: نداء @user
+       📢 نداء إداري
     ========================= */
     if (!content.startsWith("نداء")) return;
 
@@ -93,7 +145,7 @@ module.exports = {
         .setTimestamp();
 
       await targetUser.send({ embeds: [dmEmbed] });
-    } catch (err) {
+    } catch {
       await message.channel.send("⚠️ لم أتمكن من إرسال رسالة خاصة للمستخدم");
     }
   }
