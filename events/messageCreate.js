@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const lineDB = path.join(__dirname, "../database/lineChannels.json");
-const lineImage = path.join(__dirname, "../assets/line/default.PNG");
+const lineImage = path.join(__dirname, "../assets/line/default.png");
 
 // إنشاء الملف لو مش موجود
 if (!fs.existsSync(lineDB)) {
