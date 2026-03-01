@@ -227,7 +227,9 @@ DealerX Protection System
   }
 
 }); // 🔥 ده القوس اللي كان ناقص عندك
+}
 
+});
 /* =======================
    Register Slash Commands
 ======================= */
