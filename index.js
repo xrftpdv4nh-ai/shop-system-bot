@@ -129,7 +129,9 @@ client.on("messageCreate", async (message) => {
 
 client.on("interactionCreate", async (interaction) => {
 
-  // Slash
+  // ======================
+  // Slash Commands
+  // ======================
   if (interaction.isChatInputCommand()) {
     const command = client.commands.get(interaction.commandName);
     if (!command) return;
@@ -145,25 +147,19 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
-  // Button ترجمة القوانين
-  client.on("interactionCreate", async (interaction) => {
+  // ======================
+  // Button (ترجمة القوانين)
+  // ======================
+  if (interaction.isButton() && interaction.customId === "rules_ar") {
 
-  // زر الترجمة
-  if (interaction.isButton()) {
-
-    if (interaction.customId === "rules_ar") {
-
-      const { EmbedBuilder } = require("discord.js");
-
-      const arabicEmbed = new EmbedBuilder()
-        .setColor("#C1121F")
-        .setTitle("DealerX - القوانين الرسمية")
-        .setDescription(`
+    const arabicEmbed = new EmbedBuilder()
+      .setColor("#C1121F")
+      .setTitle("DealerX - القوانين الرسمية")
+      .setDescription(`
 بمجرد انضمامك إلى DealerX فأنت توافق على الالتزام بجميع القوانين التالية.
 
 ━━━━━━━━━━━━━━━━━━
 🔹 **السلوك العام**
-
 1. احترام جميع الأعضاء والإدارة.
 2. يمنع الإساءة أو العنصرية أو خطاب الكراهية.
 3. يمنع المحتوى الإباحي أو غير اللائق.
@@ -175,7 +171,6 @@ client.on("interactionCreate", async (interaction) => {
 
 ━━━━━━━━━━━━━━━━━━
 💬 **قوانين الشات**
-
 9. يمنع السبام أو تكرار الرسائل.
 10. يمنع النسخ واللصق المتكرر.
 11. يمنع الإعلانات بدون إذن.
@@ -185,7 +180,6 @@ client.on("interactionCreate", async (interaction) => {
 
 ━━━━━━━━━━━━━━━━━━
 🛠 **الدعم الفني**
-
 15. استخدم الروم الصحيح للدعم.
 16. اشرح مشكلتك بوضوح.
 17. لا تزعج الإدارة بدون سبب.
@@ -194,20 +188,17 @@ client.on("interactionCreate", async (interaction) => {
 
 ━━━━━━━━━━━━━━━━━━
 🤖 **قوانين البوت**
-
 20. يمنع استغلال أو محاولة كسر DealerX.
 21. يمنع نسخ أو سرقة البوت.
 22. البلاغات يجب أن تكون حقيقية فقط.
 
 ━━━━━━━━━━━━━━━━━━
 🔐 **الخصوصية**
-
 23. يمنع مشاركة معلومات شخصية.
 24. يمنع الروابط الخبيثة أو الاحتيالية.
 
 ━━━━━━━━━━━━━━━━━━
 ⚖ **التنفيذ**
-
 25. قرارات الإدارة نهائية.
 26. العقوبات تصاعدية حسب المخالفة.
 27. محاولة الهروب من العقوبة تؤدي لعقوبة أشد.
@@ -216,18 +207,14 @@ client.on("interactionCreate", async (interaction) => {
 
 ━━━━━━━━━━━━━━━━━━
 DealerX Protection System
-        `)
-        .setImage("https://i.ibb.co/mFzrdBz6/D95-FDA5-A-CA9-C-40-D6-B6-F9-AEA8957-E7-D58.jpg");
+      `)
+      .setImage("https://i.ibb.co/mFzrdBz6/D95-FDA5-A-CA9-C-40-D6-B6-F9-AEA8957-E7-D58.jpg");
 
-      await interaction.reply({
-        embeds: [arabicEmbed],
-        ephemeral: true
-      });
-    }
+    await interaction.reply({
+      embeds: [arabicEmbed],
+      ephemeral: true
+    });
   }
-
-}); // 🔥 ده القوس اللي كان ناقص عندك
-}
 
 });
 /* =======================
