@@ -7,7 +7,8 @@ const {
   Collection,
   REST,
   Routes,
-  Partials
+  Partials,
+  EmbedBuilder
 } = require("discord.js");
 
 // ⬅️ ربط MongoDB
@@ -26,8 +27,8 @@ const client = new Client({
 
 const PREFIX = "$";
 
-client.commands = new Collection();      // Slash
-client.prefixCommands = new Collection(); // Prefix
+client.commands = new Collection();
+client.prefixCommands = new Collection();
 
 /* =======================
    Prefix Commands Loader
@@ -42,7 +43,6 @@ if (fs.existsSync(prefixPath)) {
   for (const file of prefixFiles) {
     const command = require(`./commands/prefix/${file}`);
     if (!command.name || !command.execute) continue;
-
     client.prefixCommands.set(command.name, command);
   }
 }
@@ -67,7 +67,6 @@ if (fs.existsSync(slashPath)) {
 
     for (const file of files) {
       const command = require(`./commands/slash/${folder}/${file}`);
-
       if (!command.data || !command.execute) continue;
 
       client.commands.set(command.data.name, command);
@@ -125,7 +124,7 @@ client.on("messageCreate", async (message) => {
 });
 
 /* =======================
-   Slash Handler
+   Slash + Button Handler
 ======================= */
 
 client.on("interactionCreate", async (interaction) => {
@@ -146,80 +145,23 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
-  // Buttons (زي ترجمة القوانين)
-  if (interaction.customId === "rules_ar") {
+  // Button ترجمة القوانين
+  if (interaction.isButton() && interaction.customId === "rules_ar") {
 
-  const { EmbedBuilder } = require("discord.js");
+    const arabicEmbed = new EmbedBuilder()
+      .setColor("#C1121F")
+      .setTitle("DealerX - القوانين الرسمية")
+      .setDescription("تم عرض النسخة العربية الكاملة للقوانين.")
+      .setImage("https://i.ibb.co/mFzrdBz6/D95-FDA5-A-CA9-C-40-D6-B6-F9-AEA8957-E7-D58.jpg");
 
-  const arabicEmbed = new EmbedBuilder()
-    .setColor("#C1121F")
-    .setTitle("DealerX - القوانين الرسمية")
-    .setDescription(`
-بمجرد انضمامك إلى DealerX فأنت توافق على الالتزام بجميع القوانين التالية.
+    await interaction.reply({
+      embeds: [arabicEmbed],
+      ephemeral: true
+    });
+  }
 
-━━━━━━━━━━━━━━━━━━
-🔹 **السلوك العام**
+}); // 🔥 ده القوس اللي كان ناقص عندك
 
-1. احترام جميع الأعضاء والإدارة.
-2. يمنع الإساءة أو العنصرية أو خطاب الكراهية.
-3. يمنع المحتوى الإباحي أو غير اللائق.
-4. يمنع المحتوى العنيف أو المزعج.
-5. الالتزام بشروط استخدام ديسكورد.
-6. يمنع انتحال شخصية الإدارة أو الأعضاء.
-7. يجب أن تكون الأسماء والصور مناسبة.
-8. استخدام اللغة المسموح بها في كل روم.
-
-━━━━━━━━━━━━━━━━━━
-💬 **قوانين الشات**
-
-9. يمنع السبام أو تكرار الرسائل.
-10. يمنع النسخ واللصق المتكرر.
-11. يمنع الإعلانات بدون إذن.
-12. يمنع نشر روابط سيرفرات أخرى.
-13. تجنب المشاكل والسلوك السام.
-14. الالتزام بموضوع الروم.
-
-━━━━━━━━━━━━━━━━━━
-🛠 **الدعم الفني**
-
-15. استخدم الروم الصحيح للدعم.
-16. اشرح مشكلتك بوضوح.
-17. لا تزعج الإدارة بدون سبب.
-18. لا تفتح أكثر من تذكرة لنفس المشكلة.
-19. البلاغات الكاذبة تعرضك للعقوبة.
-
-━━━━━━━━━━━━━━━━━━
-🤖 **قوانين البوت**
-
-20. يمنع استغلال أو محاولة كسر DealerX.
-21. يمنع نسخ أو سرقة البوت.
-22. البلاغات يجب أن تكون حقيقية فقط.
-
-━━━━━━━━━━━━━━━━━━
-🔐 **الخصوصية**
-
-23. يمنع مشاركة معلومات شخصية.
-24. يمنع الروابط الخبيثة أو الاحتيالية.
-
-━━━━━━━━━━━━━━━━━━
-⚖ **التنفيذ**
-
-25. قرارات الإدارة نهائية.
-26. العقوبات تصاعدية حسب المخالفة.
-27. محاولة الهروب من العقوبة تؤدي لعقوبة أشد.
-28. الجهل بالقوانين ليس عذرًا.
-29. القوانين قابلة للتحديث في أي وقت.
-
-━━━━━━━━━━━━━━━━━━
-DealerX Protection System
-    `)
-    .setImage("https://i.ibb.co/mFzrdBz6/D95-FDA5-A-CA9-C-40-D6-B6-F9-AEA8957-E7-D58.jpg");
-
-  await interaction.reply({
-    embeds: [arabicEmbed],
-    ephemeral: true
-  });
-}
 /* =======================
    Register Slash Commands
 ======================= */
@@ -239,7 +181,6 @@ client.once("ready", async () => {
       Routes.applicationCommands(client.user.id),
       { body: slashCommands }
     );
-
     console.log("✅ Slash commands registered.");
   } catch (error) {
     console.error("❌ Failed to register slash commands:", error);
