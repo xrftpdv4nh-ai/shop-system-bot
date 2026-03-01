@@ -3,6 +3,9 @@ const {
   PermissionFlagsBits
 } = require("discord.js");
 
+function encryptText(text) {
+  return Buffer.from(text, "utf-8").toString("base64");
+}
 module.exports = {
   name: "interactionCreate",
   async execute(interaction) {
