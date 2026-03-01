@@ -12,9 +12,9 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setColor("#5865F2")
-      .setTitle("ProLexBot - About Us")
+      .setTitle("DealerX - About Us")
       .setDescription(`
-ProLexBot is a multi-purpose Discord bot designed to provide powerful moderation, automation, and engagement tools.
+DealerX is a multi-purpose Discord bot designed to provide powerful moderation, automation, and engagement tools.
 
 ━━━━━━━━━━━━━━━━━━
 ⚙️ **Bot Features**
@@ -32,11 +32,11 @@ Copying, redistributing, reselling, or reverse-engineering the bot is strictly p
 
 ━━━━━━━━━━━━━━━━━━
 ℹ️ **Important Information**
-ProLexBot is not affiliated with Discord Inc.
+DealerX is not affiliated with Discord Inc.
 Features may change or update at any time.
       `)
       .setImage("https://i.ibb.co/SDx5rcY3/E6-EE14-C0-2-BB2-4-A46-836-C-887197-F80-F65.jpg")
-      .setFooter({ text: "ProLexBot • Official System" })
+      .setFooter({ text: "DealerX • Official System" })
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
