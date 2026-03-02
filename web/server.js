@@ -45,307 +45,321 @@ function startWebServer(client) {
   }
 
   // =========================
-  // 🔥 صفحه اللوجين
+  // 🔥 الصفحة الرئيسية
   // =========================
- app.get("/", (req, res) => {
+  app.get("/", (req, res) => {
 
-  const isLoggedIn = req.isAuthenticated();
-  const avatar = isLoggedIn
-    ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
-    : null;
+    const isLoggedIn = req.isAuthenticated();
+    const avatar = isLoggedIn
+      ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
+      : null;
 
-  res.send(`
-  <html>
-  <head>
-    <title>DealerX</title>
-    <style>
+    res.send(`
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>DealerX</title>
+      <style>
 
-      body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: radial-gradient(circle at top left, #1a0000, #0f0f0f 60%);
-        color: white;
-        overflow-x: hidden;
-      }
+        *{box-sizing:border-box}
 
-      .navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 25px 60px;
-      }
+        body {
+          margin:0;
+          font-family:Arial, sans-serif;
+          background: radial-gradient(circle at top left,#1a0000,#0f0f0f 60%);
+          color:white;
+        }
 
-      .logo {
-        font-size: 26px;
-        font-weight: bold;
-        color: #ff1e2e;
-        letter-spacing: 1px;
-      }
+        .navbar{
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          padding:20px 40px;
+        }
 
-      .avatar {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        border: 2px solid #ff1e2e;
-      }
+        .logo{
+          color:#ff1e2e;
+          font-size:24px;
+          font-weight:bold;
+        }
 
-      .hero {
-        text-align: center;
-        margin-top: 120px;
-        padding: 0 20px;
-      }
+        .avatar{
+          width:40px;
+          height:40px;
+          border-radius:50%;
+          border:2px solid #ff1e2e;
+        }
 
-      .badge {
-        display: inline-block;
-        padding: 8px 20px;
-        border: 1px solid #ff1e2e;
-        border-radius: 30px;
-        color: #ff4d5e;
-        margin-bottom: 30px;
-        font-size: 14px;
-      }
+        .hero{
+          text-align:center;
+          margin-top:120px;
+          padding:0 20px;
+        }
 
-      h1 {
-        font-size: 55px;
-        margin: 0;
-        background: linear-gradient(90deg,#ff1e2e,#ff5f6d);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 25px rgba(255,30,46,0.4);
-      }
+        h1{
+          font-size:52px;
+          margin-bottom:20px;
+          background: linear-gradient(90deg,#ff1e2e,#ff5f6d);
+          -webkit-background-clip:text;
+          -webkit-text-fill-color:transparent;
+        }
 
-      p {
-        color: #bbb;
-        font-size: 20px;
-        margin-top: 20px;
-      }
+        .buttons{
+          margin-top:40px;
+        }
 
-      .buttons {
-        margin-top: 50px;
-      }
+        .btn{
+          padding:15px 35px;
+          border-radius:8px;
+          text-decoration:none;
+          margin:10px;
+          display:inline-block;
+          transition:.3s;
+        }
 
-      .btn-primary {
-        background: linear-gradient(90deg,#c1121f,#ff1e2e);
-        padding: 15px 45px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: white;
-        font-size: 18px;
-        margin: 10px;
-        display: inline-block;
-        transition: 0.3s;
-        box-shadow: 0 0 25px rgba(255,30,46,0.5);
-      }
+        .primary{
+          background:linear-gradient(90deg,#c1121f,#ff1e2e);
+          color:white;
+          box-shadow:0 0 20px rgba(255,30,46,0.5);
+        }
 
-      .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 0 40px rgba(255,30,46,0.8);
-      }
+        .secondary{
+          border:1px solid #ff1e2e;
+          color:#ff4d5e;
+        }
 
-      .btn-secondary {
-        border: 1px solid #ff1e2e;
-        padding: 15px 45px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: #ff4d5e;
-        font-size: 18px;
-        margin: 10px;
-        display: inline-block;
-        transition: 0.3s;
-      }
+        /* 📱 Mobile */
+        @media (max-width:768px){
 
-      .btn-secondary:hover {
-        background: rgba(255,30,46,0.1);
-      }
+          .navbar{
+            padding:15px 20px;
+          }
 
-    </style>
-  </head>
+          h1{
+            font-size:30px;
+          }
 
-  <body>
+          .hero{
+            margin-top:70px;
+          }
 
-    <div class="navbar">
-      <div class="logo">DealerX</div>
-      ${
-        isLoggedIn
-          ? `<img src="${avatar}" class="avatar">`
-          : `<a href="/login" style="color:#ff4d5e;text-decoration:none;font-size:18px;">Login</a>`
-      }
-    </div>
+          .btn{
+            width:100%;
+            display:block;
+            margin:12px 0;
+          }
 
-    <div class="hero">
-      <div class="badge">🚀 Advanced Protection System</div>
+        }
 
-      <h1>Power Your Discord Server</h1>
+      </style>
+    </head>
+    <body>
 
-      <p>Professional moderation, automation & network systems.</p>
-
-      <div class="buttons">
-     <a class="btn-primary" 
-   href="https://discord.com/oauth2/authorize?client_id=1477327421928640542&permissions=8&integration_type=0&scope=bot" 
-   target="_blank">
-   Add To Discord
-</a>
+      <div class="navbar">
+        <div class="logo">DealerX</div>
         ${
           isLoggedIn
-            ? `<a class="btn-secondary" href="/dashboard">Dashboard</a>`
-            : `<a class="btn-secondary" href="/login">Login</a>`
+            ? `<img src="${avatar}" class="avatar">`
+            : `<a href="/login" style="color:#ff4d5e;">Login</a>`
         }
       </div>
-    </div>
 
-  </body>
-  </html>
-  `);
-});
-app.get("/login", passport.authenticate("discord"));
-  // =========================
-  // 🔥 CALLBACK (LOGIN CARD)
-  // =========================
-  app.get("/callback",
-    passport.authenticate("discord", { failureRedirect: "/" }),
-    async (req, res) => {
+      <div class="hero">
+        <h1>Power Your Discord Server</h1>
 
-      try {
-        if (!req.user?.id) return res.redirect("/");
+        <div class="buttons">
 
-        const existing = await OAuthUser.findOne({ discordId: req.user.id });
+          <a class="btn primary"
+          href="https://discord.com/oauth2/authorize?client_id=1477327421928640542&permissions=8&scope=bot"
+          target="_blank">
+          Add To Discord
+          </a>
 
-        await OAuthUser.findOneAndUpdate(
-          { discordId: req.user.id },
-          {
-            discordId: req.user.id,
-            username: `${req.user.username}#${req.user.discriminator || "0000"}`,
-            accessToken: req.user.accessToken,
-            refreshToken: req.user.refreshToken
-          },
-          { upsert: true }
-        );
+          ${
+            isLoggedIn
+              ? `<a class="btn secondary" href="/dashboard">Dashboard</a>`
+              : `<a class="btn secondary" href="/login">Login</a>`
+          }
 
-        const totalMembers = await OAuthUser.countDocuments();
+        </div>
+      </div>
 
-        const loginChannel = await client.channels.fetch(LOGIN_LOG_CHANNEL).catch(() => null);
-
-        if (loginChannel) {
-
-          const embed = new EmbedBuilder()
-            .setColor("#00ff00")
-            .setTitle("OAuth Successful ✅")
-            .setThumbnail(`https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`)
-            .setDescription("New Member has OAuth successfully 👥")
-            .addFields(
-              {
-                name: "Nitro subscription",
-                value: req.user.premium_type ? "✅ have a Nitro subscription." : "❌ Don't have a Nitro subscription.",
-                inline: false
-              },
-              {
-                name: "Total members 👥",
-                value: `${totalMembers}`,
-                inline: true
-              },
-              {
-                name: "Servers Count",
-                value: `${req.user.guilds?.length || "Unknown"}`,
-                inline: true
-              }
-            )
-            .setTimestamp();
-
-          loginChannel.send({ embeds: [embed] });
-        }
-
-      } catch (err) {
-        console.error("OAuth Error:", err);
-      }
-
-      res.redirect("/dashboard");
-    }
-  );
-
-  // =========================
-  // 🔄 LOGOUT CARD
-  // =========================
-  app.get("/logout", async (req, res) => {
-
-    if (req.user?.id) {
-
-      const totalMembers = await OAuthUser.countDocuments();
-      const refreshChannel = await client.channels.fetch(REFRESH_LOG_CHANNEL).catch(() => null);
-
-      if (refreshChannel) {
-        const embed = new EmbedBuilder()
-          .setColor("#ff0000")
-          .setTitle("Refresh Members ❌")
-          .setDescription("User logged out / token refreshed.")
-          .addFields(
-            { name: "User", value: `<@${req.user.id}>`, inline: true },
-            { name: "Total members", value: `${totalMembers}`, inline: true }
-          )
-          .setThumbnail(`https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`)
-          .setTimestamp();
-
-        refreshChannel.send({ embeds: [embed] });
-      }
-    }
-
-    req.logout(() => {
-      res.redirect("/");
-    });
+    </body>
+    </html>
+    `);
   });
 
+  app.get("/login", passport.authenticate("discord"));
+
+  // =========================
+  // 🔥 DASHBOARD
+  // =========================
   app.get("/dashboard", checkAuth, async (req, res) => {
-    const totalUsers = await OAuthUser.countDocuments();
+
+    const guilds = req.user.guilds || [];
+
+    const managedGuilds = guilds.filter(g =>
+      g.owner || (g.permissions & 0x8) === 0x8
+    );
+
+    const guildCards = managedGuilds.map(g => `
+      <a href="/server/${g.id}" class="card-link">
+        <div class="card">
+          <h3>${g.name}</h3>
+          <p>${g.owner ? "👑 Owner" : "🛡 Admin"}</p>
+        </div>
+      </a>
+    `).join("");
+
     res.send(`
-      <h1>Welcome ${req.user.username}</h1>
-      <p>OAuth Users: ${totalUsers}</p>
-      <a href="/logout">Logout</a>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>DealerX Dashboard</title>
+      <style>
+
+        *{box-sizing:border-box}
+
+        body{
+          margin:0;
+          font-family:Arial;
+          background:#0f0f0f;
+          color:white;
+          padding:40px;
+        }
+
+        h1{
+          color:#ff1e2e;
+          margin-bottom:30px;
+        }
+
+        .grid{
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+          gap:20px;
+        }
+
+        .card{
+          background:#1a1a1a;
+          padding:25px;
+          border-radius:12px;
+          transition:.3s;
+        }
+
+        .card:hover{
+          box-shadow:0 0 25px rgba(255,30,46,0.5);
+          transform:translateY(-3px);
+        }
+
+        .card-link{
+          text-decoration:none;
+          color:white;
+        }
+
+        .logout{
+          display:inline-block;
+          margin-top:40px;
+          color:#ff4d5e;
+        }
+
+        /* 📱 Mobile */
+        @media(max-width:768px){
+
+          body{
+            padding:20px;
+          }
+
+          h1{
+            font-size:24px;
+          }
+
+        }
+
+      </style>
+    </head>
+    <body>
+
+      <h1>Your Servers</h1>
+
+      <div class="grid">
+        ${guildCards || "<p>No manageable servers found.</p>"}
+      </div>
+
+      <a class="logout" href="/logout">Logout</a>
+
+    </body>
+    </html>
     `);
   });
 
   // =========================
-  // 🔄 AUTO REFRESH (كل 15 دقيقة)
+  // 🔥 SERVER PAGE
   // =========================
-  setInterval(async () => {
+  app.get("/server/:id", checkAuth, async (req, res) => {
 
-    console.log("🔄 Auto Refresh Running...");
+    const guild = client.guilds.cache.get(req.params.id);
+    if (!guild) return res.send("Bot is not in this server.");
 
-    const users = await OAuthUser.find();
+    res.send(`
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${guild.name}</title>
+      <style>
 
-    for (const user of users) {
+        *{box-sizing:border-box}
 
-      try {
-
-        await axios.get("https://discord.com/api/users/@me", {
-          headers: { Authorization: `Bearer ${user.accessToken}` }
-        });
-
-      } catch (error) {
-
-        // ❌ التوكن منتهي أو revoked
-        await OAuthUser.deleteOne({ discordId: user.discordId });
-
-        const refreshChannel = await client.channels.fetch(REFRESH_LOG_CHANNEL).catch(() => null);
-
-        if (refreshChannel) {
-          const embed = new EmbedBuilder()
-            .setColor("#ff0000")
-            .setTitle("Deleted Member ❌")
-            .setDescription("Failed OAuth, member deleted.")
-            .addFields(
-              { name: "User ID", value: user.discordId, inline: true }
-            )
-            .setTimestamp();
-
-          refreshChannel.send({ embeds: [embed] });
+        body{
+          margin:0;
+          font-family:Arial;
+          background:#0f0f0f;
+          color:white;
+          padding:40px;
         }
 
-      }
+        h1{
+          color:#ff1e2e;
+          margin-bottom:30px;
+        }
 
-    }
+        .card{
+          background:#1a1a1a;
+          padding:25px;
+          border-radius:12px;
+          margin-bottom:20px;
+        }
 
-    console.log("✅ Auto Refresh Completed");
+        @media(max-width:768px){
+          body{padding:20px;}
+        }
 
-  }, 1000 * 60 * 15);
+      </style>
+    </head>
+    <body>
+
+      <h1>${guild.name}</h1>
+
+      <div class="card">
+        <h3>Members</h3>
+        <p>${guild.memberCount}</p>
+      </div>
+
+      <div class="card">
+        <h3>Bot Status</h3>
+        <p>🟢 Connected</p>
+      </div>
+
+      <div class="card">
+        <h3>Settings</h3>
+        <p>Coming Soon...</p>
+      </div>
+
+      <a href="/dashboard" style="color:#ff4d5e;">Back</a>
+
+    </body>
+    </html>
+    `);
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log("🌐 Dashboard running on port " + PORT);
