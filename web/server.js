@@ -44,14 +44,155 @@ function startWebServer(client) {
     res.redirect("/");
   }
 
-  app.get("/", (req, res) => {
-    res.send(`
-      <h1>DealerX Dashboard</h1>
-      <a href="/login">Login with Discord</a>
-    `);
-  });
+  // =========================
+  // 🔥 صفحه اللوجين
+  // =========================
+ app.get("/", (req, res) => {
 
-  app.get("/login", passport.authenticate("discord"));
+  const isLoggedIn = req.isAuthenticated();
+  const avatar = isLoggedIn
+    ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
+    : null;
+
+  res.send(`
+  <html>
+  <head>
+    <title>DealerX</title>
+    <style>
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: radial-gradient(circle at top left, #1a0000, #0f0f0f 60%);
+        color: white;
+        overflow-x: hidden;
+      }
+
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 25px 60px;
+      }
+
+      .logo {
+        font-size: 26px;
+        font-weight: bold;
+        color: #ff1e2e;
+        letter-spacing: 1px;
+      }
+
+      .avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        border: 2px solid #ff1e2e;
+      }
+
+      .hero {
+        text-align: center;
+        margin-top: 120px;
+        padding: 0 20px;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border: 1px solid #ff1e2e;
+        border-radius: 30px;
+        color: #ff4d5e;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      h1 {
+        font-size: 55px;
+        margin: 0;
+        background: linear-gradient(90deg,#ff1e2e,#ff5f6d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 25px rgba(255,30,46,0.4);
+      }
+
+      p {
+        color: #bbb;
+        font-size: 20px;
+        margin-top: 20px;
+      }
+
+      .buttons {
+        margin-top: 50px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(90deg,#c1121f,#ff1e2e);
+        padding: 15px 45px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: white;
+        font-size: 18px;
+        margin: 10px;
+        display: inline-block;
+        transition: 0.3s;
+        box-shadow: 0 0 25px rgba(255,30,46,0.5);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 40px rgba(255,30,46,0.8);
+      }
+
+      .btn-secondary {
+        border: 1px solid #ff1e2e;
+        padding: 15px 45px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #ff4d5e;
+        font-size: 18px;
+        margin: 10px;
+        display: inline-block;
+        transition: 0.3s;
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255,30,46,0.1);
+      }
+
+    </style>
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="logo">DealerX</div>
+      ${
+        isLoggedIn
+          ? `<img src="${avatar}" class="avatar">`
+          : `<a href="/login" style="color:#ff4d5e;text-decoration:none;font-size:18px;">Login</a>`
+      }
+    </div>
+
+    <div class="hero">
+      <div class="badge">🚀 Advanced Protection System</div>
+
+      <h1>Power Your Discord Server</h1>
+
+      <p>Professional moderation, automation & network systems.</p>
+
+      <div class="buttons">
+        <a class="btn-primary" href="/login">Add To Discord</a>
+        ${
+          isLoggedIn
+            ? `<a class="btn-secondary" href="/dashboard">Dashboard</a>`
+            : `<a class="btn-secondary" href="/login">Login</a>`
+        }
+      </div>
+    </div>
+
+  </body>
+  </html>
+  `);
+});
 
   // =========================
   // 🔥 CALLBACK (LOGIN CARD)
