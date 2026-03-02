@@ -2,7 +2,11 @@ const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
-const OAuthUser = require("../database/OAuthUser"); // 👈 أضفنا ده
+const { EmbedBuilder } = require("discord.js");
+const OAuthUser = require("../database/OAuthUser");
+
+const LOGIN_LOG_CHANNEL = "1477443204629659648";
+const REFRESH_LOG_CHANNEL = "1477443214439874754";
 
 function startWebServer(client) {
 
@@ -28,11 +32,8 @@ function startWebServer(client) {
       scope: ["identify", "guilds"]
     },
     (accessToken, refreshToken, profile, done) => {
-
-      // 👇 نرجع التوكن مع البروفايل
       profile.accessToken = accessToken;
       profile.refreshToken = refreshToken;
-
       return done(null, profile);
     }
   ));
@@ -42,7 +43,6 @@ function startWebServer(client) {
     res.redirect("/");
   }
 
-  // الصفحة الرئيسية
   app.get("/", (req, res) => {
     res.send(`
       <h1>DealerX Dashboard</h1>
@@ -50,10 +50,11 @@ function startWebServer(client) {
     `);
   });
 
-  // تسجيل الدخول
   app.get("/login", passport.authenticate("discord"));
 
-  // الرجوع من ديسكورد
+  // =========================
+  // 🔥 CALLBACK (LOGIN CARD)
+  // =========================
   app.get("/callback",
     passport.authenticate("discord", { failureRedirect: "/" }),
     async (req, res) => {
@@ -61,7 +62,8 @@ function startWebServer(client) {
       try {
         if (!req.user?.id) return res.redirect("/");
 
-        // 🔥 حفظ أو تحديث المستخدم
+        const existing = await OAuthUser.findOne({ discordId: req.user.id });
+
         await OAuthUser.findOneAndUpdate(
           { discordId: req.user.id },
           {
@@ -70,49 +72,118 @@ function startWebServer(client) {
             accessToken: req.user.accessToken,
             refreshToken: req.user.refreshToken
           },
-          { upsert: true, new: true }
+          { upsert: true }
         );
 
-        console.log("✅ OAuth saved:", req.user.username);
+        const totalMembers = await OAuthUser.countDocuments();
+
+        const loginChannel = await client.channels
+          .fetch(LOGIN_LOG_CHANNEL)
+          .catch(() => null);
+
+        if (loginChannel) {
+
+          const embed = new EmbedBuilder()
+            .setColor("#00ff00")
+            .setTitle("OAuth Successful ✅")
+            .setThumbnail(
+              `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
+            )
+            .setDescription("New Member has OAuth successfully 👥")
+            .addFields(
+              {
+                name: "Nitro subscription",
+                value: req.user.premium_type ? "✅ have a Nitro subscription." : "❌ Don't have a Nitro subscription.",
+                inline: false
+              },
+              {
+                name: "Total members 👥",
+                value: `${totalMembers}`,
+                inline: true
+              },
+              {
+                name: "Servers Count",
+                value: `${req.user.guilds?.length || "Unknown"}`,
+                inline: true
+              }
+            )
+            .setTimestamp();
+
+          loginChannel.send({ embeds: [embed] });
+        }
 
       } catch (err) {
-        console.error("❌ OAuth Save Error:", err.message);
+        console.error("OAuth Error:", err);
       }
 
       res.redirect("/dashboard");
     }
   );
 
-  // لوحة التحكم
-  app.get("/dashboard", checkAuth, async (req, res) => {
+  // =========================
+  // 🔄 LOGOUT CARD
+  // =========================
+  app.get("/logout", async (req, res) => {
 
-    const botStatus = client.isReady() ? "🟢 Online" : "🔴 Offline";
-    const guildCount = client.guilds.cache.size;
-    const ping = client.ws.ping;
+    if (req.user?.id) {
 
-    // 👇 عدد المسجلين في Mongo
-    const totalUsers = await OAuthUser.countDocuments();
+      const totalMembers = await OAuthUser.countDocuments();
 
-    res.send(`
-      <h1>Welcome ${req.user.username}</h1>
-      <p>Status: ${botStatus}</p>
-      <p>Servers: ${guildCount}</p>
-      <p>Ping: ${ping}ms</p>
-      <p>OAuth Users: ${totalUsers}</p>
-      <a href="/logout">Logout</a>
-    `);
-  });
+      const refreshChannel = await client.channels
+        .fetch(REFRESH_LOG_CHANNEL)
+        .catch(() => null);
 
-  app.get("/logout", (req, res) => {
+      if (refreshChannel) {
+
+        const embed = new EmbedBuilder()
+          .setColor("#ff0000")
+          .setTitle("Refresh Members ❌")
+          .setDescription("User logged out / token refreshed.")
+          .addFields(
+            {
+              name: "Nitro",
+              value: req.user.premium_type ? "Have subscription" : "Don't have subscription",
+              inline: false
+            },
+            {
+              name: "Guild Count",
+              value: `${req.user.guilds?.length || "Unknown"}`,
+              inline: true
+            },
+            {
+              name: "Total members",
+              value: `${totalMembers}`,
+              inline: true
+            }
+          )
+          .setThumbnail(
+            `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`
+          )
+          .setTimestamp();
+
+        refreshChannel.send({ embeds: [embed] });
+      }
+    }
+
     req.logout(() => {
       res.redirect("/");
     });
   });
 
+  app.get("/dashboard", checkAuth, async (req, res) => {
+
+    const totalUsers = await OAuthUser.countDocuments();
+
+    res.send(`
+      <h1>Welcome ${req.user.username}</h1>
+      <p>OAuth Users: ${totalUsers}</p>
+      <a href="/logout">Logout</a>
+    `);
+  });
+
   app.listen(PORT, "0.0.0.0", () => {
     console.log("🌐 Dashboard running on port " + PORT);
   });
-
 }
 
 module.exports = startWebServer;
