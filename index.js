@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const startWebServer = require("./web/server");
 
 const {
   Client,
@@ -124,8 +125,6 @@ client.on("messageCreate", async (message) => {
 /* =======================
    Register Slash Commands
 ======================= */
-const startWebServer = require("./web/server");
-
 client.once("ready", async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 
