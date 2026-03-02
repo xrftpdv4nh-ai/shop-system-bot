@@ -69,9 +69,11 @@ function startWebServer(client) {
     `);
   });
 
-  app.listen(PORT, () => {
-    console.log("🌐 Dashboard running on port " + PORT);
-  });
+  const PORT = process.env.PORT;
+
+app.listen(PORT, () => {
+  console.log("🌐 Dashboard running on port " + PORT);
+});
 
 }
 
