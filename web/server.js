@@ -3,7 +3,7 @@ const express = require("express");
 function startWebServer(client) {
 
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT; // ✅ تعريف واحد فقط
 
   app.get("/", (req, res) => {
 
@@ -34,6 +34,7 @@ function startWebServer(client) {
               padding: 20px;
               margin: 20px auto;
               width: 400px;
+              border-radius: 10px;
               border-radius: 10px;
               box-shadow: 0 0 10px #000;
             }
@@ -69,11 +70,9 @@ function startWebServer(client) {
     `);
   });
 
-  const PORT = process.env.PORT;
-
-app.listen(PORT, () => {
-  console.log("🌐 Dashboard running on port " + PORT);
-});
+  app.listen(PORT, () => {
+    console.log("🌐 Dashboard running on port " + PORT);
+  });
 
 }
 
