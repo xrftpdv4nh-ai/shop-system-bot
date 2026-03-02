@@ -180,7 +180,11 @@ function startWebServer(client) {
       <p>Professional moderation, automation & network systems.</p>
 
       <div class="buttons">
-        <a class="btn-primary" href="/login">Add To Discord</a>
+     <a class="btn-primary" 
+   href="https://discord.com/oauth2/authorize?client_id=1477327421928640542&permissions=8&integration_type=0&scope=bot" 
+   target="_blank">
+   Add To Discord
+</a>
         ${
           isLoggedIn
             ? `<a class="btn-secondary" href="/dashboard">Dashboard</a>`
