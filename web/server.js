@@ -193,7 +193,7 @@ function startWebServer(client) {
   </html>
   `);
 });
-
+app.get("/login", passport.authenticate("discord"));
   // =========================
   // 🔥 CALLBACK (LOGIN CARD)
   // =========================
