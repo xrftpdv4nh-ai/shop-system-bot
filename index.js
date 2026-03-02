@@ -144,6 +144,12 @@ client.once("ready", async () => {
 });
 
 /* =======================
+   Start Web Server FIRST
+======================= */
+
+startWebServer(client); // 👈 ده كان ناقص عندك
+
+/* =======================
    Start Bot
 ======================= */
 
