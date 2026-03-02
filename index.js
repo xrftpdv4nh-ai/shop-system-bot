@@ -10,7 +10,6 @@ const {
   Partials
 } = require("discord.js");
 
-const startWebServer = require("./web/server");
 const connectDB = require("./database/connect");
 
 const client = new Client({
@@ -125,6 +124,7 @@ client.on("messageCreate", async (message) => {
 /* =======================
    Register Slash Commands
 ======================= */
+const startWebServer = require("./web/server");
 
 client.once("ready", async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
