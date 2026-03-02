@@ -10,6 +10,7 @@ const {
   Partials
 } = require("discord.js");
 
+const startWebServer = require("./web/server");
 const connectDB = require("./database/connect");
 
 const client = new Client({
