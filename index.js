@@ -8,7 +8,8 @@ const {
   Collection,
   REST,
   Routes,
-  Partials
+  Partials,
+  EmbedBuilder // 👈 تمت إضافة هذا لتصميم الرسائل المنسقة
 } = require("discord.js");
 
 const connectDB = require("./database/connect");
@@ -144,10 +145,56 @@ client.once("ready", async () => {
 });
 
 /* =======================
+   Logs System (Embeds) 
+======================= */
+client.sendOAuthLog = async (type, data) => {
+    const JOIN_ROOM_ID = "1478886893382008952";
+    const REFRESH_ROOM_ID = "1478886940651552809";
+
+    const channelId = type === 'join' ? JOIN_ROOM_ID : REFRESH_ROOM_ID;
+    const channel = await client.channels.fetch(channelId).catch(() => null);
+    
+    if (!channel) return;
+
+    const embed = new EmbedBuilder();
+
+    if (type === 'join') {
+        embed.setTitle("OAuth Successful ✅")
+             .setDescription("New Member has OAuth successfully 👥")
+             .setColor(0x2ecc71) 
+             .setThumbnail(data.avatar || null)
+             .addFields(
+                { name: "Nitro subscription 💨", value: "❌ Don't have a Nitro subscription.", inline: false },
+                { name: "Total members 👥", value: `${data.totalMembers || '332'}`, inline: false },
+                { name: "Servers Count", value: `${data.serverCount || '97'}`, inline: false }
+             );
+    } else if (type === 'refresh_max') {
+        embed.setTitle("Refresh Members ❌")
+             .setColor(0xe67e22) 
+             .setThumbnail(data.avatar || null)
+             .addFields(
+                { name: "Max Servers Reached", value: "This user reached the **max server limit**.", inline: false },
+                { name: "Nitro", value: "Don't have a subscription", inline: false },
+                { name: "Guild Count", value: `${data.guildCount || '100'}`, inline: false }
+             )
+             .setTimestamp();
+    } else if (type === 'refresh_fail') {
+        embed.setTitle("Refresh Members ❌")
+             .setDescription("### Deleted Member\nFailed OAuth, member deleted.")
+             .setColor(0xff0000) 
+             .setThumbnail(data.avatar || null)
+             .addFields({ name: "Nitro", value: "Don't have a subscription", inline: false })
+             .setTimestamp();
+    }
+
+    await channel.send({ embeds: [embed] }).catch(err => console.log("Error sending log:", err));
+};
+
+/* =======================
    Start Web Server FIRST
 ======================= */
 
-startWebServer(client); // 👈 ده كان ناقص عندك
+startWebServer(client); 
 
 /* =======================
    Start Bot
