@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <title>Dashboard | DealerX</title>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/" class="logo">DealerX</a>
+        <div style="display:flex; align-items:center;">
+            <span style="margin-right:10px;"><%= user.username %></span>
+            <img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" class="avatar">
+        </div>
+    </div>
+
+    <div style="padding:40px 5%;">
+        <h2>سيرفراتك اللي تقدر تديرها 🛡️</h2>
+        <p style="color:#888;">اختار السيرفر اللي عايز تظبط إعداداته</p>
+    </div>
+
+    <div class="grid">
+        <% guilds.forEach(guild => { %>
+            <div class="card">
+                <h3><%= guild.name %></h3>
+                <p>ID: <%= guild.id %></p>
+                <a href="/server/<%= guild.id %>" class="btn primary" style="width:100%; text-align:center;">إدارة السيرفر</a>
+            </div>
+        <% }) %>
+    </div>
+</body>
+</html>
