@@ -19,14 +19,16 @@
         body {
             margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg-dark); color: white; overflow-x: hidden;
+            transition: 0.3s;
         }
 
-        /* القائمة الجانبية (Sidebar) */
+        /* القائمة الجانبية (متجاوبة مع اللغتين بذكاء) */
         .sidebar {
             width: var(--sidebar-width); background: var(--sidebar-bg);
-            height: 100vh; position: fixed; left: 0; top: 0;
-            border-right: 1px solid var(--border-color);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+            height: 100vh; position: fixed; top: 0;
+            inset-inline-start: 0; /* ده السحر اللي بيخليها يمين في العربي وشمال في الإنجليزي */
+            border-inline-end: 1px solid var(--border-color);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
             z-index: 1000; overflow-y: auto;
         }
 
@@ -41,21 +43,23 @@
             display: flex; align-items: center; gap: 15px;
             padding: 16px 25px; color: #aaa; text-decoration: none;
             font-weight: 500; transition: 0.3s;
+            border-inline-start: 4px solid transparent;
         }
 
         .sidebar a:hover, .sidebar a.active {
             background: rgba(255, 30, 46, 0.08); color: var(--main-red);
-            border-left: 4px solid var(--main-red);
+            border-inline-start: 4px solid var(--main-red);
         }
 
         .sidebar a i { font-size: 18px; width: 20px; text-align: center; }
 
         /* المحتوى الرئيسي */
         .main {
-            margin-left: var(--sidebar-width); transition: 0.4s ease; min-height: 100vh;
+            margin-inline-start: var(--sidebar-width); 
+            transition: 0.4s ease; min-height: 100vh;
         }
 
-        /* الناف بار العلوي */
+        /* الناف بار */
         .navbar {
             display: flex; justify-content: space-between; align-items: center;
             padding: 15px 30px; background: rgba(11, 11, 11, 0.8);
@@ -74,8 +78,10 @@
         .lang-btn:hover { background: var(--main-red); color: white; }
         .avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--main-red); }
 
-        /* منطقة الكروت (Grid) */
+        /* الكروت والمحتوى */
         .content { padding: 40px; }
+        .page-header { border-inline-start: 4px solid var(--main-red); padding-inline-start: 15px; }
+        
         .grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 25px; margin-top: 30px;
@@ -88,18 +94,14 @@
         }
         .card:hover { border-color: var(--main-red); transform: translateY(-5px); box-shadow: 0 5px 20px rgba(255, 30, 46, 0.1); }
 
-        .server-icon {
-            width: 70px; height: 70px; border-radius: 50%; margin-bottom: 15px;
+        .server-icon, .server-icon-fallback {
+            width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 15px auto;
             border: 2px solid var(--border-color); object-fit: cover;
         }
         .server-icon-fallback {
-            width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 15px auto;
             background: #222; display: flex; align-items: center; justify-content: center;
-            font-size: 28px; font-weight: bold; border: 2px solid var(--border-color);
+            font-size: 28px; font-weight: bold;
         }
-
-        .card h3 { margin: 0 0 5px 0; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card p { color: #666; font-size: 12px; margin: 0 0 20px 0; }
 
         .btn {
             background: linear-gradient(90deg, #c1121f, var(--main-red)); color: white;
@@ -108,17 +110,23 @@
         }
         .btn:hover { filter: brightness(1.2); box-shadow: 0 4px 15px rgba(255, 30, 46, 0.3); }
 
-        /* تظليل الخلفية في الموبايل */
+        /* Overlay */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 999; display: none; opacity: 0; transition: 0.3s;
         }
 
-        /* الموبايل (Responsive) */
+        /* كلاسات التحكم في الإخفاء والإظهار */
+        .sidebar.collapsed { transform: translateX(-100%); }
+        [dir="rtl"] .sidebar.collapsed { transform: translateX(100%); }
+        .main.collapsed { margin-inline-start: 0; }
+
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); } /* مخفية في الموبايل */
-            .sidebar.active { transform: translateX(0); } /* تظهر لما تدوس */
-            .main { margin-left: 0; }
+            .sidebar { transform: translateX(-100%); } 
+            [dir="rtl"] .sidebar { transform: translateX(100%); }
+            
+            .sidebar.active { transform: translateX(0) !important; }
+            .main { margin-inline-start: 0; }
             .content { padding: 20px; }
             .overlay.active { display: block; opacity: 1; }
         }
@@ -130,11 +138,26 @@
 
     <div class="sidebar" id="sidebar">
         <a href="/" class="logo">DealerX</a>
-        <a href="/dashboard" class="active"><i class="fa-solid fa-house"></i> <span class="txt">Home</span></a>
-        <a href="#"><i class="fa-solid fa-shield-halved"></i> <span class="txt">Servers</span></a>
-        <a href="#"><i class="fa-solid fa-gear"></i> <span class="txt">Settings</span></a>
-        <a href="#"><i class="fa-solid fa-robot"></i> <span class="txt">Commands</span></a>
-        <a href="/logout" style="margin-top: 50px; color: #ff4d4d;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="txt">Logout</span></a>
+        <a href="/dashboard" class="active">
+            <i class="fa-solid fa-house"></i> 
+            <span class="lang" data-en="Home" data-ar="الرئيسية">Home</span>
+        </a>
+        <a href="#">
+            <i class="fa-solid fa-shield-halved"></i> 
+            <span class="lang" data-en="Servers" data-ar="السيرفرات">Servers</span>
+        </a>
+        <a href="#">
+            <i class="fa-solid fa-gear"></i> 
+            <span class="lang" data-en="Settings" data-ar="الإعدادات">Settings</span>
+        </a>
+        <a href="#">
+            <i class="fa-solid fa-robot"></i> 
+            <span class="lang" data-en="Commands" data-ar="الأوامر">Commands</span>
+        </a>
+        <a href="/logout" style="margin-top: 50px; color: #ff4d4d;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> 
+            <span class="lang" data-en="Logout" data-ar="تسجيل الخروج">Logout</span>
+        </a>
     </div>
 
     <div class="main" id="main">
@@ -150,9 +173,14 @@
         </div>
 
         <div class="content">
-            <div style="border-left: 4px solid var(--main-red); padding-left: 15px;">
-                <h2 id="title" style="margin: 0 0 5px 0;">Your Servers <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i></h2>
-                <p id="desc" style="color:#888; margin: 0;">Choose the server you want to manage</p>
+            <div class="page-header">
+                <h2 style="margin: 0 0 5px 0;">
+                    <span class="lang" data-en="Your Servers" data-ar="سيرفراتك">Your Servers</span> 
+                    <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>
+                </h2>
+                <p class="lang" data-en="Choose the server you want to manage" data-ar="اختر السيرفر الذي تود إدارته" style="color:#888; margin: 0;">
+                    Choose the server you want to manage
+                </p>
             </div>
 
             <div class="grid">
@@ -164,11 +192,12 @@
                             <div class="server-icon-fallback"><%= guild.name.charAt(0) %></div>
                         <% } %>
                         
-                        <h3><%= guild.name %></h3>
-                        <p>ID: <%= guild.id %></p>
+                        <h3 style="margin: 0 0 5px 0; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= guild.name %></h3>
+                        <p style="color: #666; font-size: 12px; margin: 0 0 20px 0;">ID: <%= guild.id %></p>
                         
                         <a href="/server/<%= guild.id %>" class="btn">
-                            <i class="fa-solid fa-sliders"></i> Manage Server
+                            <i class="fa-solid fa-sliders"></i> 
+                            <span class="lang" data-en="Manage Server" data-ar="إدارة السيرفر">Manage Server</span>
                         </a>
                     </div>
                 <% }) %>
@@ -178,43 +207,47 @@
     </div>
 
     <script>
-        /* كود التحكم في القائمة (متوافق مع الموبايل والكمبيوتر) */
+        /* كود التحكم في القائمة (Sidebar) المتوافق مع اللغتين */
         function toggleSidebar() {
             const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main");
             const overlay = document.getElementById("overlay");
             
-            // في الشاشات الصغيرة بنظهر الـ Overlay والقائمة بتدخل Slide
             if (window.innerWidth <= 768) {
                 sidebar.classList.toggle("active");
                 overlay.classList.toggle("active");
             } else {
-                // في الكمبيوتر بنخليها تختفي وتوسع الشاشة
-                if (sidebar.style.transform === "translateX(-100%)") {
-                    sidebar.style.transform = "translateX(0)";
-                    document.getElementById("main").style.marginLeft = "260px";
-                } else {
-                    sidebar.style.transform = "translateX(-100%)";
-                    document.getElementById("main").style.marginLeft = "0";
-                }
+                sidebar.classList.toggle("collapsed");
+                main.classList.toggle("collapsed");
             }
         }
 
-        /* كود الترجمة */
-        let arabic = false;
+        /* كود الترجمة الشامل (بضغطة زر) */
+        let isArabic = false;
         function toggleLang() {
-            arabic = !arabic;
-            const htmlLang = document.getElementById("htmlLang");
-            
-            if(arabic) {
-                htmlLang.setAttribute("dir", "rtl");
-                document.getElementById("title").innerHTML = `سيرفراتك <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>`;
-                document.getElementById("desc").innerText = "اختار السيرفر اللي عايز تديره";
-                document.getElementById("langBtn").innerText = "EN";
+            isArabic = !isArabic;
+            const htmlTag = document.getElementById("htmlLang");
+            const langBtn = document.getElementById("langBtn");
+            const translatableElements = document.querySelectorAll(".lang");
+
+            if(isArabic) {
+                htmlTag.setAttribute("dir", "rtl"); // بيقلب الموقع يمين
+                htmlTag.setAttribute("lang", "ar");
+                langBtn.innerText = "EN"; // يخلي الزرار يقلب إنجليزي
+                
+                // بيغير كل الكلمات لعربي
+                translatableElements.forEach(el => {
+                    el.innerHTML = el.getAttribute("data-ar");
+                });
             } else {
-                htmlLang.setAttribute("dir", "ltr");
-                document.getElementById("title").innerHTML = `Your Servers <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>`;
-                document.getElementById("desc").innerText = "Choose the server you want to manage";
-                document.getElementById("langBtn").innerText = "AR";
+                htmlTag.setAttribute("dir", "ltr"); // بيقلب الموقع شمال
+                htmlTag.setAttribute("lang", "en");
+                langBtn.innerText = "AR"; // يخلي الزرار يقلب عربي
+                
+                // بيغير كل الكلمات لإنجليزي
+                translatableElements.forEach(el => {
+                    el.innerHTML = el.getAttribute("data-en");
+                });
             }
         }
     </script>
