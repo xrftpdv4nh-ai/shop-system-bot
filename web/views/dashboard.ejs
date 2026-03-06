@@ -1,237 +1,222 @@
 <!DOCTYPE html>
-<html lang="en" id="htmlLang">
+<html lang="en" id="htmlLang" dir="ltr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealerX | Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --main-red: #ff1e2e;
+            --main-red-hover: #cc1825;
+            --bg-dark: #0b0b0b;
+            --sidebar-bg: #121212;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 30, 46, 0.15);
+            --sidebar-width: 260px;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/style.css">
+        body {
+            margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark); color: white; overflow-x: hidden;
+        }
 
-<title>DealerX Dashboard</title>
+        /* القائمة الجانبية (Sidebar) */
+        .sidebar {
+            width: var(--sidebar-width); background: var(--sidebar-bg);
+            height: 100vh; position: fixed; left: 0; top: 0;
+            border-right: 1px solid var(--border-color);
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+            z-index: 1000; overflow-y: auto;
+        }
 
-<style>
+        .sidebar .logo {
+            font-size: 26px; font-weight: 800; color: var(--main-red);
+            text-align: center; padding: 25px 0; display: block;
+            text-decoration: none; letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+        }
 
-body{
-margin:0;
-font-family:Arial;
-background:#0f0f14;
-color:white;
-display:flex;
-}
+        .sidebar a {
+            display: flex; align-items: center; gap: 15px;
+            padding: 16px 25px; color: #aaa; text-decoration: none;
+            font-weight: 500; transition: 0.3s;
+        }
 
-/* SIDEBAR */
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(255, 30, 46, 0.08); color: var(--main-red);
+            border-left: 4px solid var(--main-red);
+        }
 
-.sidebar{
-width:230px;
-background:#151520;
-height:100vh;
-position:fixed;
-transition:0.3s;
-overflow:hidden;
-}
+        .sidebar a i { font-size: 18px; width: 20px; text-align: center; }
 
-.sidebar.hide{
-width:70px;
-}
+        /* المحتوى الرئيسي */
+        .main {
+            margin-left: var(--sidebar-width); transition: 0.4s ease; min-height: 100vh;
+        }
 
-.sidebar a{
-display:flex;
-align-items:center;
-gap:10px;
-padding:15px 20px;
-color:#ccc;
-text-decoration:none;
-transition:.2s;
-}
+        /* الناف بار العلوي */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background: rgba(11, 11, 11, 0.8);
+            backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; z-index: 100;
+        }
 
-.sidebar a:hover{
-background:#1f1f2e;
-color:white;
-}
+        .toggle-btn { font-size: 24px; cursor: pointer; color: white; transition: 0.3s; }
+        .toggle-btn:hover { color: var(--main-red); }
 
-.logo{
-font-size:20px;
-font-weight:bold;
-padding:20px;
-display:block;
-color:white;
-text-decoration:none;
-}
+        .user-section { display: flex; align-items: center; gap: 15px; }
+        .lang-btn {
+            background: transparent; border: 1px solid var(--main-red); color: var(--main-red);
+            padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .lang-btn:hover { background: var(--main-red); color: white; }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--main-red); }
 
-/* MAIN */
+        /* منطقة الكروت (Grid) */
+        .content { padding: 40px; }
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px; margin-top: 30px;
+        }
 
-.main{
-margin-left:230px;
-width:100%;
-transition:.3s;
-}
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 25px; border-radius: 16px; text-align: center;
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .card:hover { border-color: var(--main-red); transform: translateY(-5px); box-shadow: 0 5px 20px rgba(255, 30, 46, 0.1); }
 
-.main.full{
-margin-left:70px;
-}
+        .server-icon {
+            width: 70px; height: 70px; border-radius: 50%; margin-bottom: 15px;
+            border: 2px solid var(--border-color); object-fit: cover;
+        }
+        .server-icon-fallback {
+            width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 15px auto;
+            background: #222; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: bold; border: 2px solid var(--border-color);
+        }
 
-/* NAVBAR */
+        .card h3 { margin: 0 0 5px 0; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card p { color: #666; font-size: 12px; margin: 0 0 20px 0; }
 
-.navbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:15px 30px;
-background:#151520;
-}
+        .btn {
+            background: linear-gradient(90deg, #c1121f, var(--main-red)); color: white;
+            padding: 12px; border-radius: 8px; text-decoration: none; display: block;
+            font-weight: bold; transition: 0.3s;
+        }
+        .btn:hover { filter: brightness(1.2); box-shadow: 0 4px 15px rgba(255, 30, 46, 0.3); }
 
-.avatar{
-width:35px;
-border-radius:50%;
-}
+        /* تظليل الخلفية في الموبايل */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 999; display: none; opacity: 0; transition: 0.3s;
+        }
 
-/* BUTTON */
-
-.toggle-btn{
-font-size:22px;
-cursor:pointer;
-}
-
-.lang-btn{
-background:#5865F2;
-border:none;
-padding:6px 12px;
-border-radius:6px;
-color:white;
-cursor:pointer;
-}
-
-/* GRID */
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-gap:20px;
-padding:40px;
-}
-
-.card{
-background:#1b1b28;
-padding:20px;
-border-radius:10px;
-}
-
-.btn{
-background:#5865F2;
-padding:10px;
-border-radius:6px;
-color:white;
-text-decoration:none;
-display:block;
-text-align:center;
-margin-top:10px;
-}
-
-</style>
-
+        /* الموبايل (Responsive) */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); } /* مخفية في الموبايل */
+            .sidebar.active { transform: translateX(0); } /* تظهر لما تدوس */
+            .main { margin-left: 0; }
+            .content { padding: 20px; }
+            .overlay.active { display: block; opacity: 1; }
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- SIDEBAR -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<div class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar">
+        <a href="/" class="logo">DealerX</a>
+        <a href="/dashboard" class="active"><i class="fa-solid fa-house"></i> <span class="txt">Home</span></a>
+        <a href="#"><i class="fa-solid fa-shield-halved"></i> <span class="txt">Servers</span></a>
+        <a href="#"><i class="fa-solid fa-gear"></i> <span class="txt">Settings</span></a>
+        <a href="#"><i class="fa-solid fa-robot"></i> <span class="txt">Commands</span></a>
+        <a href="/logout" style="margin-top: 50px; color: #ff4d4d;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="txt">Logout</span></a>
+    </div>
 
-<a class="logo">DealerX</a>
+    <div class="main" id="main">
+        
+        <div class="navbar">
+            <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+            
+            <div class="user-section">
+                <button class="lang-btn" onclick="toggleLang()" id="langBtn">AR</button>
+                <span style="font-weight: bold;"><%= user.username %></span>
+                <img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" class="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            </div>
+        </div>
 
-<a href="/">🏠 <span class="txt">Home</span></a>
-<a href="/servers">🛡️ <span class="txt">Servers</span></a>
-<a href="/settings">⚙️ <span class="txt">Settings</span></a>
-<a href="/commands">🤖 <span class="txt">Commands</span></a>
-<a href="/logout">🚪 <span class="txt">Logout</span></a>
+        <div class="content">
+            <div style="border-left: 4px solid var(--main-red); padding-left: 15px;">
+                <h2 id="title" style="margin: 0 0 5px 0;">Your Servers <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i></h2>
+                <p id="desc" style="color:#888; margin: 0;">Choose the server you want to manage</p>
+            </div>
 
-</div>
+            <div class="grid">
+                <% guilds.forEach(guild => { %>
+                    <div class="card">
+                        <% if (guild.icon) { %>
+                            <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" class="server-icon">
+                        <% } else { %>
+                            <div class="server-icon-fallback"><%= guild.name.charAt(0) %></div>
+                        <% } %>
+                        
+                        <h3><%= guild.name %></h3>
+                        <p>ID: <%= guild.id %></p>
+                        
+                        <a href="/server/<%= guild.id %>" class="btn">
+                            <i class="fa-solid fa-sliders"></i> Manage Server
+                        </a>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
 
-<!-- MAIN -->
+    </div>
 
-<div class="main" id="main">
+    <script>
+        /* كود التحكم في القائمة (متوافق مع الموبايل والكمبيوتر) */
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("overlay");
+            
+            // في الشاشات الصغيرة بنظهر الـ Overlay والقائمة بتدخل Slide
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+            } else {
+                // في الكمبيوتر بنخليها تختفي وتوسع الشاشة
+                if (sidebar.style.transform === "translateX(-100%)") {
+                    sidebar.style.transform = "translateX(0)";
+                    document.getElementById("main").style.marginLeft = "260px";
+                } else {
+                    sidebar.style.transform = "translateX(-100%)";
+                    document.getElementById("main").style.marginLeft = "0";
+                }
+            }
+        }
 
-<div class="navbar">
-
-<div>
-<span class="toggle-btn" onclick="toggleSidebar()">☰</span>
-</div>
-
-<div style="display:flex;align-items:center;gap:15px;">
-
-<button class="lang-btn" onclick="toggleLang()">AR</button>
-
-<span><%= user.username %></span>
-
-<img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" class="avatar">
-
-</div>
-
-</div>
-
-
-<div style="padding:30px">
-
-<h2 id="title">Your Servers 🛡️</h2>
-<p id="desc" style="color:#888">Choose the server you want to manage</p>
-
-</div>
-
-
-<div class="grid">
-
-<% guilds.forEach(guild => { %>
-
-<div class="card">
-
-<h3><%= guild.name %></h3>
-<p>ID: <%= guild.id %></p>
-
-<a href="/server/<%= guild.id %>" class="btn">
-Manage Server
-</a>
-
-</div>
-
-<% }) %>
-
-</div>
-
-</div>
-
-<script>
-
-/* SIDEBAR TOGGLE */
-
-function toggleSidebar(){
-
-document.getElementById("sidebar").classList.toggle("hide")
-document.getElementById("main").classList.toggle("full")
-
-}
-
-
-/* LANGUAGE SWITCH */
-
-let arabic=false
-
-function toggleLang(){
-
-arabic=!arabic
-
-if(arabic){
-
-document.getElementById("title").innerText="سيرفراتك"
-document.getElementById("desc").innerText="اختار السيرفر اللي عايز تديره"
-
-}else{
-
-document.getElementById("title").innerText="Your Servers 🛡️"
-document.getElementById("desc").innerText="Choose the server you want to manage"
-
-}
-
-}
-
-</script>
-
+        /* كود الترجمة */
+        let arabic = false;
+        function toggleLang() {
+            arabic = !arabic;
+            const htmlLang = document.getElementById("htmlLang");
+            
+            if(arabic) {
+                htmlLang.setAttribute("dir", "rtl");
+                document.getElementById("title").innerHTML = `سيرفراتك <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>`;
+                document.getElementById("desc").innerText = "اختار السيرفر اللي عايز تديره";
+                document.getElementById("langBtn").innerText = "EN";
+            } else {
+                htmlLang.setAttribute("dir", "ltr");
+                document.getElementById("title").innerHTML = `Your Servers <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>`;
+                document.getElementById("desc").innerText = "Choose the server you want to manage";
+                document.getElementById("langBtn").innerText = "AR";
+            }
+        }
+    </script>
 </body>
 </html>
