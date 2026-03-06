@@ -1,32 +1,148 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-    <link rel="stylesheet" href="/style.css">
-    <title>DealerX | Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/style.css">
+<title>Dashboard | DealerX</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#0f0f14;
+color:white;
+display:flex;
+}
+
+.sidebar{
+width:230px;
+background:#151520;
+height:100vh;
+padding-top:20px;
+position:fixed;
+}
+
+.sidebar a{
+display:block;
+padding:15px 20px;
+color:#ccc;
+text-decoration:none;
+transition:.2s;
+}
+
+.sidebar a:hover{
+background:#1f1f2e;
+color:white;
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+padding:20px;
+display:block;
+color:white;
+text-decoration:none;
+}
+
+.main{
+margin-right:230px;
+width:100%;
+}
+
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 40px;
+background:#151520;
+}
+
+.avatar{
+width:35px;
+border-radius:50%;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+padding:40px;
+}
+
+.card{
+background:#1b1b28;
+padding:20px;
+border-radius:10px;
+}
+
+.btn{
+display:inline-block;
+padding:10px;
+border-radius:6px;
+text-decoration:none;
+}
+
+.primary{
+background:#5865F2;
+color:white;
+}
+
+</style>
+
 </head>
 <body>
-    <div class="sidebar">
-        <a href="/" class="logo">DealerX</a>
-        <a href="/dashboard" class="nav-link active">الرئيسية</a>
-        <a href="/profile" class="nav-link">حسابي</a>
-        <a href="/logout" class="nav-link" style="margin-top:auto; color:#ff4d4d;">تسجيل الخروج</a>
-    </div>
 
-    <div class="main-content">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h1>سيرفراتك</h1>
-            <img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" style="width:40px; border-radius:50%; border:2px solid var(--main-red);">
-        </div>
+<div class="sidebar">
 
-        <div class="grid">
-            <% guilds.forEach(guild => { %>
-                <div class="card" style="border: 1px solid #333; padding: 20px; border-radius: 12px;">
-                    <h3 style="margin-top:0"><%= guild.name %></h3>
-                    <p style="font-size:12px; color:#666;"><%= guild.id %></p>
-                    <a href="/server/<%= guild.id %>" class="btn primary" style="width:100%; text-align:center;">إدارة الإعدادات</a>
-                </div>
-            <% }) %>
-        </div>
-    </div>
+<a href="/" class="logo">DealerX</a>
+
+<a href="/">🏠 الرئيسية</a>
+<a href="/servers">🛡️ السيرفرات</a>
+<a href="/settings">⚙️ الإعدادات</a>
+<a href="/commands">🤖 الأوامر</a>
+<a href="/logout">🚪 تسجيل خروج</a>
+
+</div>
+
+<div class="main">
+
+<div class="navbar">
+
+<div></div>
+
+<div style="display:flex; align-items:center;">
+<span style="margin-left:10px;"><%= user.username %></span>
+<img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" class="avatar">
+</div>
+
+</div>
+
+<div style="padding:40px">
+<h2>سيرفراتك اللي تقدر تديرها 🛡️</h2>
+<p style="color:#888;">اختار السيرفر اللي عايز تظبط إعداداته</p>
+</div>
+
+<div class="grid">
+
+<% guilds.forEach(guild => { %>
+
+<div class="card">
+
+<h3><%= guild.name %></h3>
+<p>ID: <%= guild.id %></p>
+
+<a href="/server/<%= guild.id %>" class="btn primary" style="width:100%;text-align:center;">
+إدارة السيرفر
+</a>
+
+</div>
+
+<% }) %>
+
+</div>
+
+</div>
+
 </body>
 </html>
