@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en" id="htmlLang">
 <head>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/style.css">
-<title>Dashboard | DealerX</title>
+
+<title>DealerX Dashboard</title>
 
 <style>
 
@@ -15,16 +17,25 @@ color:white;
 display:flex;
 }
 
+/* SIDEBAR */
+
 .sidebar{
 width:230px;
 background:#151520;
 height:100vh;
-padding-top:20px;
 position:fixed;
+transition:0.3s;
+overflow:hidden;
+}
+
+.sidebar.hide{
+width:70px;
 }
 
 .sidebar a{
-display:block;
+display:flex;
+align-items:center;
+gap:10px;
 padding:15px 20px;
 color:#ccc;
 text-decoration:none;
@@ -37,7 +48,7 @@ color:white;
 }
 
 .logo{
-font-size:22px;
+font-size:20px;
 font-weight:bold;
 padding:20px;
 display:block;
@@ -45,16 +56,25 @@ color:white;
 text-decoration:none;
 }
 
+/* MAIN */
+
 .main{
-margin-right:230px;
+margin-left:230px;
 width:100%;
+transition:.3s;
 }
+
+.main.full{
+margin-left:70px;
+}
+
+/* NAVBAR */
 
 .navbar{
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:15px 40px;
+padding:15px 30px;
 background:#151520;
 }
 
@@ -63,9 +83,27 @@ width:35px;
 border-radius:50%;
 }
 
+/* BUTTON */
+
+.toggle-btn{
+font-size:22px;
+cursor:pointer;
+}
+
+.lang-btn{
+background:#5865F2;
+border:none;
+padding:6px 12px;
+border-radius:6px;
+color:white;
+cursor:pointer;
+}
+
+/* GRID */
+
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
 gap:20px;
 padding:40px;
 }
@@ -77,51 +115,66 @@ border-radius:10px;
 }
 
 .btn{
-display:inline-block;
+background:#5865F2;
 padding:10px;
 border-radius:6px;
-text-decoration:none;
-}
-
-.primary{
-background:#5865F2;
 color:white;
+text-decoration:none;
+display:block;
+text-align:center;
+margin-top:10px;
 }
 
 </style>
 
 </head>
+
 <body>
 
-<div class="sidebar">
+<!-- SIDEBAR -->
 
-<a href="/" class="logo">DealerX</a>
+<div class="sidebar" id="sidebar">
 
-<a href="/">🏠 الرئيسية</a>
-<a href="/servers">🛡️ السيرفرات</a>
-<a href="/settings">⚙️ الإعدادات</a>
-<a href="/commands">🤖 الأوامر</a>
-<a href="/logout">🚪 تسجيل خروج</a>
+<a class="logo">DealerX</a>
+
+<a href="/">🏠 <span class="txt">Home</span></a>
+<a href="/servers">🛡️ <span class="txt">Servers</span></a>
+<a href="/settings">⚙️ <span class="txt">Settings</span></a>
+<a href="/commands">🤖 <span class="txt">Commands</span></a>
+<a href="/logout">🚪 <span class="txt">Logout</span></a>
 
 </div>
 
-<div class="main">
+<!-- MAIN -->
+
+<div class="main" id="main">
 
 <div class="navbar">
 
-<div></div>
+<div>
+<span class="toggle-btn" onclick="toggleSidebar()">☰</span>
+</div>
 
-<div style="display:flex; align-items:center;">
-<span style="margin-left:10px;"><%= user.username %></span>
+<div style="display:flex;align-items:center;gap:15px;">
+
+<button class="lang-btn" onclick="toggleLang()">AR</button>
+
+<span><%= user.username %></span>
+
 <img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" class="avatar">
-</div>
 
 </div>
 
-<div style="padding:40px">
-<h2>سيرفراتك اللي تقدر تديرها 🛡️</h2>
-<p style="color:#888;">اختار السيرفر اللي عايز تظبط إعداداته</p>
 </div>
+
+
+<div style="padding:30px">
+
+<h2 id="title">Your Servers 🛡️</h2>
+<p id="desc" style="color:#888">Choose the server you want to manage</p>
+
+</div>
+
 
 <div class="grid">
 
@@ -132,8 +185,8 @@ color:white;
 <h3><%= guild.name %></h3>
 <p>ID: <%= guild.id %></p>
 
-<a href="/server/<%= guild.id %>" class="btn primary" style="width:100%;text-align:center;">
-إدارة السيرفر
+<a href="/server/<%= guild.id %>" class="btn">
+Manage Server
 </a>
 
 </div>
@@ -143,6 +196,42 @@ color:white;
 </div>
 
 </div>
+
+<script>
+
+/* SIDEBAR TOGGLE */
+
+function toggleSidebar(){
+
+document.getElementById("sidebar").classList.toggle("hide")
+document.getElementById("main").classList.toggle("full")
+
+}
+
+
+/* LANGUAGE SWITCH */
+
+let arabic=false
+
+function toggleLang(){
+
+arabic=!arabic
+
+if(arabic){
+
+document.getElementById("title").innerText="سيرفراتك"
+document.getElementById("desc").innerText="اختار السيرفر اللي عايز تديره"
+
+}else{
+
+document.getElementById("title").innerText="Your Servers 🛡️"
+document.getElementById("desc").innerText="Choose the server you want to manage"
+
+}
+
+}
+
+</script>
 
 </body>
 </html>
