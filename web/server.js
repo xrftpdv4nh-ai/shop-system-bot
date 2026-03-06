@@ -2,6 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
 const path = require("path");
+const axios = require("axios"); // مهم عشان الريفرش
 const DiscordStrategy = require("passport-discord").Strategy;
 const OAuthUser = require("../database/OAuthUser");
 
@@ -9,10 +10,10 @@ function startWebServer(client) {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
-    // 🔥 حل مشكلة الـ Internal Server Error (ضبط المسارات)
+    // إعداد المحرك وقراءة الملفات من الفولدر الصح
     app.set('view engine', 'ejs');
-    app.set('views', path.join(__dirname, 'views')); // بيجيب المسار الفعلي لفولدر views
-    app.use(express.static(path.join(__dirname, 'public'))); // عشان ملفات الـ CSS
+    app.set('views', path.join(__dirname, 'views')); 
+    app.use(express.static(path.join(__dirname, 'public'))); 
 
     app.use(session({
         secret: "dealerx_secret_key",
@@ -40,6 +41,7 @@ function startWebServer(client) {
     // --- المسارات (Routes) ---
 
     app.get("/", (req, res) => {
+        // تأكد مليون في المية إن فيه ملف اسمه index.ejs جوه views
         res.render("index", { user: req.user, clientID: process.env.CLIENT_ID });
     });
 
@@ -49,7 +51,7 @@ function startWebServer(client) {
         try {
             const user = req.user;
             
-            // 1️⃣ حفظ البيانات في MongoDB
+            // 1️⃣ حفظ البيانات وتحديثها في MongoDB
             await OAuthUser.findOneAndUpdate(
                 { discordId: user.id },
                 {
@@ -63,7 +65,7 @@ function startWebServer(client) {
                 { upsert: true }
             );
 
-            // 2️⃣ حساب عدد الأعضاء الفعلي من الداتا بيز
+            // 2️⃣ جلب عدد المستخدمين الحقيقي من الداتا بيز
             const totalMembersInDB = await OAuthUser.countDocuments();
             
             const userAvatar = user.avatar 
@@ -73,7 +75,7 @@ function startWebServer(client) {
             const serverCount = user.guilds ? user.guilds.length : 0;
             const hasNitro = user.premium_type > 0;
 
-            // 3️⃣ إرسال اللوج الأخضر (Join Log)
+            // 3️⃣ إرسال لوج الدخول (العداد بيزيد هنا تلقائي)
             if (client.sendOAuthLog) {
                 client.sendOAuthLog('join', {
                     avatar: userAvatar,
@@ -92,8 +94,6 @@ function startWebServer(client) {
 
     app.get("/dashboard", (req, res) => {
         if (!req.isAuthenticated()) return res.redirect("/login");
-        
-        // فلترة السيرفرات اللي العضو فيها أدمن
         const adminGuilds = req.user.guilds.filter(g => (g.permissions & 0x8) === 0x8);
         res.render("dashboard", { user: req.user, guilds: adminGuilds });
     });
@@ -101,6 +101,41 @@ function startWebServer(client) {
     app.get("/logout", (req, res) => {
         req.logout(() => res.redirect("/"));
     });
+
+    // ==========================================
+    // 🔄 نظام الريفرش التلقائي (كل 15 دقيقة)
+    // ==========================================
+    setInterval(async () => {
+        console.log("🔄 Running Auto-Refresh Check...");
+        try {
+            const users = await OAuthUser.find();
+            for (const u of users) {
+                try {
+                    // محاولة التأكد من أن التوكن شغال
+                    await axios.get("https://discord.com/api/users/@me", {
+                        headers: { Authorization: `Bearer ${u.accessToken}` }
+                    });
+                } catch (err) {
+                    // لو فشل (يعني العضو شال الصلاحية أو حذف البوت)
+                    if (err.response && (err.response.status === 401 || err.response.status === 400)) {
+                        console.log(`❌ User ${u.username} removed the bot.`);
+                        
+                        const avatar = u.avatar 
+                            ? `https://cdn.discordapp.com/avatars/${u.discordId}/${u.avatar}.png`
+                            : "https://cdn.discordapp.com/embed/avatars/0.png";
+
+                        // إرسال لوج الحذف (Refresh Log)
+                        if (client.sendOAuthLog) {
+                            await client.sendOAuthLog('refresh_fail', { avatar });
+                        }
+                        
+                        // حذف العضو من الداتا بيز عشان العداد ينقص
+                        await OAuthUser.deleteOne({ discordId: u.discordId });
+                    }
+                }
+            }
+        } catch (e) { console.error("Refresh Loop Error:", e); }
+    }, 15 * 60 * 1000); 
 
     app.listen(PORT, "0.0.0.0", () => {
         console.log(`🚀 DealerX Dashboard Active on Port ${PORT}`);
