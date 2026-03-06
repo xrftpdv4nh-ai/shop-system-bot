@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealerX | Home</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <a href="/" class="logo">DealerX</a>
+        <% if (user) { %>
+            <div style="display:flex; align-items:center;">
+                <span style="margin-right:10px;"><%= user.username %></span>
+                <img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" class="avatar">
+            </div>
+        <% } else { %>
+            <a href="/login" class="btn secondary" style="padding: 10px 20px;">Login</a>
+        <% } %>
+    </div>
+
+    <div class="hero">
+        <h1>Power Your Discord Server</h1>
+        <p style="color:#888; font-size: 1.2rem; margin-bottom: 30px;">
+            أقوى بوت لإدارة سيرفرك وتوثيق الأعضاء
+        </p>
+        
+        <a class="btn primary" href="https://discord.com/oauth2/authorize?client_id=<%= clientID %>&permissions=8&scope=bot" target="_blank">
+            Add To Discord
+        </a>
+
+        <% if (user) { %>
+            <a class="btn secondary" href="/dashboard">Go to Dashboard</a>
+        <% } else { %>
+            <a class="btn secondary" href="/login">Get Started</a>
+        <% } %>
+    </div>
+</body>
+</html>
