@@ -3,7 +3,7 @@ const User = require("../../../models/User");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("credit")
+    .setName("crowns")
     .setDescription("Check your credits or another user's credits")
     .addUserOption(option =>
       option
