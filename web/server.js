@@ -1,36 +1,16 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const mongoose = require('mongoose');
 const axios = require('axios');
+
+const User = require('../models/User');
+const GuildConfig = require('../models/GuildConfig');
 
 module.exports = function startWebServer(client) {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
     app.set('trust proxy', 1);
-
-    mongoose.connect(process.env.MONGO_URI)
-        .then(() => console.log('MongoDB connected'))
-        .catch(err => console.error('MongoDB error:', err));
-
-    const userSchema = new mongoose.Schema({
-        discordId: { type: String, required: true, unique: true },
-        username: String,
-        avatar: String,
-        accessToken: String,
-        refreshToken: String,
-        guilds: { type: Array, default: [] },
-        lastLogin: { type: Date, default: Date.now },
-
-        // DAILY SYSTEM
-        lastDaily: {
-            type: Date,
-            default: null
-        }
-    });
-
-    const User = mongoose.models.User || mongoose.model('User', userSchema);
 
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
@@ -81,32 +61,31 @@ module.exports = function startWebServer(client) {
 
     // Internal home after login
     app.get('/home', requireAuth, async (req, res) => {
-    const dbUser = await User.findOne({ discordId: req.user.discordId });
+        const dbUser = await User.findOne({ discordId: req.user.discordId });
+        const userData = dbUser || req.user;
 
-    const userData = dbUser || req.user;
+        const betterUsers = await User.countDocuments({
+            rankScore: { $gt: userData.rankScore || 0 }
+        });
 
-    const betterUsers = await User.countDocuments({
-        rankScore: { $gt: userData.rankScore || 0 }
+        const rank = betterUsers + 1;
+
+        res.render('home', {
+            page: 'home',
+            stats: {
+                crowns: userData.credits || 0,
+                rank: rank,
+                usage: userData.usageScore || 0,
+                messageLevel: userData.messageLevel || 1,
+                voiceLevel: userData.voiceLevel || 1,
+                messageXp: userData.messageXp || 0,
+                voiceXp: userData.voiceXp || 0,
+                messageCount: userData.messageCount || 0,
+                voiceMinutes: userData.voiceMinutes || 0,
+                commandUsage: userData.commandUsage || 0
+            }
+        });
     });
-
-    const rank = betterUsers + 1;
-
-    res.render('home', {
-        page: 'home',
-        stats: {
-            crowns: userData.credits || 0,
-            rank: rank,
-            usage: userData.usageScore || 0,
-            messageLevel: userData.messageLevel || 1,
-            voiceLevel: userData.voiceLevel || 1,
-            messageXp: userData.messageXp || 0,
-            voiceXp: userData.voiceXp || 0,
-            messageCount: userData.messageCount || 0,
-            voiceMinutes: userData.voiceMinutes || 0,
-            commandUsage: userData.commandUsage || 0
-        }
-    });
-});
 
     // ===============================
     // DAILY PAGE
@@ -117,28 +96,23 @@ module.exports = function startWebServer(client) {
     });
 
     app.post('/api/daily/claim', requireAuth, async (req, res) => {
-
         const user = await User.findById(req.session.userId);
 
         if (!user) {
             return res.json({
                 success: false,
-                message: "User not found"
+                message: 'User not found'
             });
         }
 
         const cooldown = 24 * 60 * 60 * 1000;
         const now = Date.now();
-
         const last = user.lastDaily ? new Date(user.lastDaily).getTime() : 0;
 
         if (now - last < cooldown) {
-
-            const remaining = cooldown - (now - last);
-
             return res.json({
                 success: false,
-                message: "Daily already claimed. Come back later."
+                message: 'Daily already claimed. Come back later.'
             });
         }
 
@@ -154,7 +128,6 @@ module.exports = function startWebServer(client) {
             reward: reward,
             balance: user.credits
         });
-
     });
 
     // ===============================
@@ -267,15 +240,87 @@ module.exports = function startWebServer(client) {
         res.redirect('/servers');
     });
 
+    // ===============================
     // Single server page
-    app.get('/server/:id', requireAuth, (req, res) => {
+    // ===============================
+    app.get('/server/:id', requireAuth, async (req, res) => {
         const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
 
         if (!guild) {
             return res.status(404).send('Server not found');
         }
 
-        res.send(`Managing server: ${guild.name}`);
+        let guildConfig = await GuildConfig.findOne({ guildId: guild.id });
+
+        if (!guildConfig) {
+            guildConfig = await GuildConfig.create({
+                guildId: guild.id,
+                guildName: guild.name,
+                guildIcon: guild.icon || null
+            });
+        } else {
+            guildConfig.guildName = guild.name;
+            guildConfig.guildIcon = guild.icon || null;
+            await guildConfig.save();
+        }
+
+        res.render('server', {
+            page: 'servers',
+            guild,
+            config: guildConfig
+        });
+    });
+
+    // ===============================
+    // Save server settings
+    // ===============================
+    app.post('/server/:id/settings', requireAuth, async (req, res) => {
+        const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
+
+        if (!guild) {
+            return res.status(404).send('Server not found');
+        }
+
+        let guildConfig = await GuildConfig.findOne({ guildId: guild.id });
+
+        if (!guildConfig) {
+            guildConfig = await GuildConfig.create({
+                guildId: guild.id,
+                guildName: guild.name,
+                guildIcon: guild.icon || null
+            });
+        }
+
+        const disabledCommands = Array.isArray(req.body.disabledCommands)
+            ? req.body.disabledCommands
+            : req.body.disabledCommands
+                ? [req.body.disabledCommands]
+                : [];
+
+        let shortcuts = [];
+        if (req.body.shortcutName && req.body.shortcutContent) {
+            const shortcutNames = Array.isArray(req.body.shortcutName)
+                ? req.body.shortcutName
+                : [req.body.shortcutName];
+
+            const shortcutContents = Array.isArray(req.body.shortcutContent)
+                ? req.body.shortcutContent
+                : [req.body.shortcutContent];
+
+            shortcuts = shortcutNames.map((name, index) => ({
+                name: String(name || '').trim(),
+                content: String(shortcutContents[index] || '').trim()
+            })).filter(s => s.name && s.content);
+        }
+
+        guildConfig.disabledCommands = disabledCommands;
+        guildConfig.shortcuts = shortcuts;
+        guildConfig.guildName = guild.name;
+        guildConfig.guildIcon = guild.icon || null;
+
+        await guildConfig.save();
+
+        res.redirect(`/server/${guild.id}`);
     });
 
     // Logout
