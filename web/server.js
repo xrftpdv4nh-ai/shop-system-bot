@@ -80,11 +80,33 @@ module.exports = function startWebServer(client) {
     });
 
     // Internal home after login
-    app.get('/home', requireAuth, (req, res) => {
-        res.render('home', {
-            page: 'home'
-        });
+    app.get('/home', requireAuth, async (req, res) => {
+    const dbUser = await User.findOne({ discordId: req.user.discordId });
+
+    const userData = dbUser || req.user;
+
+    const betterUsers = await User.countDocuments({
+        rankScore: { $gt: userData.rankScore || 0 }
     });
+
+    const rank = betterUsers + 1;
+
+    res.render('home', {
+        page: 'home',
+        stats: {
+            crowns: userData.credits || 0,
+            rank: rank,
+            usage: userData.usageScore || 0,
+            messageLevel: userData.messageLevel || 1,
+            voiceLevel: userData.voiceLevel || 1,
+            messageXp: userData.messageXp || 0,
+            voiceXp: userData.voiceXp || 0,
+            messageCount: userData.messageCount || 0,
+            voiceMinutes: userData.voiceMinutes || 0,
+            commandUsage: userData.commandUsage || 0
+        }
+    });
+});
 
     // ===============================
     // DAILY PAGE
