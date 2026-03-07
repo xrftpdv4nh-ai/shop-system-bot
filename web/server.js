@@ -41,7 +41,10 @@ function startWebServer(client) {
     // --- المسارات (Routes) ---
 
     app.get("/", (req, res) => {
-        // تأكد مليون في المية إن فيه ملف اسمه index.ejs جوه views
+        res.render("index", { user: req.user, clientID: process.env.CLIENT_ID });
+    });
+
+    app.get("/home", (req, res) => {
         res.render("index", { user: req.user, clientID: process.env.CLIENT_ID });
     });
 
