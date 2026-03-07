@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" id="htmlRoot" dir="ltr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DealerX | Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -29,140 +29,180 @@
         </div>
 
         <div class="content">
-
-            <div class="home-hero">
-                <div class="home-hero-text">
-                    <h1>Welcome back, <span><%= user.username %></span></h1>
-                    <p>Manage your DealerX progress, track your activity, and claim your rewards from one place.</p>
-                </div>
-
-                <div class="quick-actions">
-                    <a href="/servers" class="action-btn">
-                        <i class="fa-solid fa-server"></i>
-                        Open Servers
-                    </a>
-
-                    <a href="/daily" class="action-btn">
-                        <i class="fa-solid fa-gift"></i>
-                        Claim Daily
-                    </a>
-                </div>
-            </div>
-
-            <div class="overview-grid">
-
-                <div class="overview-card large-card">
-                    <div class="overview-head">
-                        <div class="overview-icon red-icon">
-                            <i class="fa-solid fa-crown"></i>
-                        </div>
-                        <div>
-                            <h3>Crowns</h3>
-                            <p>Your current economy balance</p>
-                        </div>
+            <section class="dx-hero">
+                <div class="dx-hero-left">
+                    <div class="dx-badge">
+                        <i class="fa-solid fa-bolt"></i>
+                        DealerX Dashboard
                     </div>
 
-                    <div class="overview-value"><%= Number(stats.crowns || 0).toLocaleString() %></div>
-                </div>
+                    <h1 class="dx-hero-title">
+                        Welcome back, <span><%= user.username %></span>
+                    </h1>
 
-                <div class="overview-card">
-                    <div class="overview-head">
-                        <div class="overview-icon gold-icon">
-                            <i class="fa-solid fa-trophy"></i>
-                        </div>
-                        <div>
-                            <h3>Global Rank</h3>
-                            <p>Your current position</p>
-                        </div>
-                    </div>
+                    <p class="dx-hero-text">
+                        Track your progress, manage your servers, claim daily rewards, and monitor your full DealerX activity from one premium dashboard.
+                    </p>
 
-                    <div class="overview-value">#<%= stats.rank || 1 %></div>
-                </div>
+                    <div class="dx-actions">
+                        <a href="/servers" class="dx-btn dx-btn-primary">
+                            <i class="fa-solid fa-server"></i>
+                            Open Servers
+                        </a>
 
-                <div class="overview-card">
-                    <div class="overview-head">
-                        <div class="overview-icon blue-icon">
-                            <i class="fa-solid fa-chart-simple"></i>
-                        </div>
-                        <div>
-                            <h3>Usage</h3>
-                            <p>Commands, messages and voice activity</p>
-                        </div>
-                    </div>
-
-                    <div class="overview-value"><%= Number(stats.usage || 0).toLocaleString() %></div>
-                </div>
-
-                <div class="overview-card">
-                    <div class="overview-head">
-                        <div class="overview-icon pink-icon">
-                            <i class="fa-solid fa-comments"></i>
-                        </div>
-                        <div>
-                            <h3>Message Level</h3>
-                            <p>Text activity progress</p>
-                        </div>
-                    </div>
-
-                    <div class="overview-value"><%= stats.messageLevel || 1 %></div>
-                    <div class="overview-sub">
-                        <span>Messages:</span>
-                        <strong><%= Number(stats.messageCount || 0).toLocaleString() %></strong>
+                        <a href="/daily" class="dx-btn dx-btn-secondary">
+                            <i class="fa-solid fa-gift"></i>
+                            Claim Daily
+                        </a>
                     </div>
                 </div>
 
-                <div class="overview-card">
-                    <div class="overview-head">
-                        <div class="overview-icon purple-icon">
-                            <i class="fa-solid fa-microphone-lines"></i>
-                        </div>
-                        <div>
-                            <h3>Voice Level</h3>
-                            <p>Voice activity progress</p>
+                <div class="dx-hero-right">
+                    <div class="dx-profile-card">
+                        <img
+                            src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                            alt="avatar"
+                            class="dx-profile-avatar"
+                            onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+                        >
+                        <div class="dx-profile-meta">
+                            <h3><%= user.username %></h3>
+                            <p>DealerX Premium User</p>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="overview-value"><%= stats.voiceLevel || 1 %></div>
-                    <div class="overview-sub">
-                        <span>Voice Minutes:</span>
-                        <strong><%= Number(stats.voiceMinutes || 0).toLocaleString() %></strong>
+            <section class="dx-stats-grid">
+                <div class="dx-stat-card dx-stat-large">
+                    <div class="dx-stat-icon crown">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Crowns</h3>
+                        <p>Your current balance</p>
+                        <div class="dx-stat-value"><%= Number(stats.crowns || 0).toLocaleString() %></div>
                     </div>
                 </div>
 
-                <div class="overview-card bot-card">
-                    <div class="overview-head">
-                        <div class="overview-icon green-icon">
-                            <i class="fa-solid fa-robot"></i>
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon rank">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Global Rank</h3>
+                        <p>Position among all users</p>
+                        <div class="dx-stat-value">#<%= stats.rank || 1 %></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon usage">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Usage</h3>
+                        <p>Commands, messages and voice</p>
+                        <div class="dx-stat-value"><%= Number(stats.usage || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon msg">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Message Level</h3>
+                        <p>Text activity progress</p>
+                        <div class="dx-stat-value"><%= stats.messageLevel || 1 %></div>
+                        <div class="dx-mini-line">Messages: <strong><%= Number(stats.messageCount || 0).toLocaleString() %></strong></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon voice">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Voice Level</h3>
+                        <p>Voice activity progress</p>
+                        <div class="dx-stat-value"><%= stats.voiceLevel || 1 %></div>
+                        <div class="dx-mini-line">Voice Minutes: <strong><%= Number(stats.voiceMinutes || 0).toLocaleString() %></strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dx-bottom-grid">
+                <div class="dx-panel">
+                    <div class="dx-panel-head">
+                        <h3><i class="fa-solid fa-chart-line"></i> Progress</h3>
+                        <span>Live overview</span>
+                    </div>
+
+                    <div class="dx-progress-block">
+                        <div class="dx-progress-title">
+                            <span>Message XP</span>
+                            <strong><%= Number(stats.messageXp || 0).toLocaleString() %></strong>
                         </div>
-                        <div>
-                            <h3>Bot Overview</h3>
-                            <p>DealerX core information</p>
+                        <div class="dx-progress-bar">
+                            <div class="dx-progress-fill" style="width: <%= Math.min(100, ((stats.messageXp || 0) % 1000) / 10) %>%"></div>
                         </div>
                     </div>
 
-                    <div class="bot-description">
-                        DealerX is a management and activity bot built for moderation, economy, automation, server tools, and a clean user dashboard experience.
+                    <div class="dx-progress-block">
+                        <div class="dx-progress-title">
+                            <span>Voice XP</span>
+                            <strong><%= Number(stats.voiceXp || 0).toLocaleString() %></strong>
+                        </div>
+                        <div class="dx-progress-bar">
+                            <div class="dx-progress-fill alt" style="width: <%= Math.min(100, ((stats.voiceXp || 0) % 1000) / 10) %>%"></div>
+                        </div>
                     </div>
 
-                    <div class="bot-meta">
-                        <div class="bot-meta-item">
+                    <div class="dx-progress-block">
+                        <div class="dx-progress-title">
+                            <span>Commands Used</span>
+                            <strong><%= Number(stats.commandUsage || 0).toLocaleString() %></strong>
+                        </div>
+                        <div class="dx-progress-bar">
+                            <div class="dx-progress-fill soft" style="width: <%= Math.min(100, ((stats.commandUsage || 0) % 1000) / 10) %>%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dx-panel">
+                    <div class="dx-panel-head">
+                        <h3><i class="fa-solid fa-robot"></i> DealerX Overview</h3>
+                        <span>Core information</span>
+                    </div>
+
+                    <p class="dx-overview-text">
+                        DealerX is a premium Discord bot built for moderation, economy, activity, automation, and dashboard-based server control with a dark luxury experience.
+                    </p>
+
+                    <div class="dx-info-grid">
+                        <div class="dx-info-box">
                             <span>Message XP</span>
                             <strong><%= Number(stats.messageXp || 0).toLocaleString() %></strong>
                         </div>
 
-                        <div class="bot-meta-item">
+                        <div class="dx-info-box">
                             <span>Voice XP</span>
                             <strong><%= Number(stats.voiceXp || 0).toLocaleString() %></strong>
                         </div>
 
-                        <div class="bot-meta-item">
-                            <span>Commands Used</span>
+                        <div class="dx-info-box">
+                            <span>Commands</span>
                             <strong><%= Number(stats.commandUsage || 0).toLocaleString() %></strong>
+                        </div>
+
+                        <div class="dx-info-box">
+                            <span>Crowns</span>
+                            <strong><%= Number(stats.crowns || 0).toLocaleString() %></strong>
                         </div>
                     </div>
                 </div>
-
-            </div>
+            </section>
         </div>
     </div>
 
