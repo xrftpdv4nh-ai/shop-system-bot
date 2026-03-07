@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const {
   calculateLevel,
-  calculateUsageScore,
   calculateRankScore
 } = require("../utils/levelSystem");
 
@@ -58,6 +57,9 @@ module.exports = {
 
       userData.voiceMinutes += minutes;
 
+      // كل دقيقة فويس = +3 usage
+      userData.usageScore += minutes * 3;
+
       const gainedXp = minutes * 5;
       const gainedCredits = Math.floor(minutes / 2);
 
@@ -68,9 +70,7 @@ module.exports = {
       const newVoiceLevel = calculateLevel(userData.voiceXp);
       userData.voiceLevel = newVoiceLevel;
 
-      userData.usageScore = calculateUsageScore(userData);
       userData.rankScore = calculateRankScore(userData);
-
       userData.lastVoiceJoin = null;
 
       await userData.save();
@@ -106,6 +106,9 @@ module.exports = {
       if (minutes > 0) {
         userData.voiceMinutes += minutes;
 
+        // كل دقيقة فويس = +3 usage
+        userData.usageScore += minutes * 3;
+
         const gainedXp = minutes * 5;
         const gainedCredits = Math.floor(minutes / 2);
 
@@ -116,7 +119,6 @@ module.exports = {
         const newVoiceLevel = calculateLevel(userData.voiceXp);
         userData.voiceLevel = newVoiceLevel;
 
-        userData.usageScore = calculateUsageScore(userData);
         userData.rankScore = calculateRankScore(userData);
 
         if (newVoiceLevel > oldVoiceLevel) {
