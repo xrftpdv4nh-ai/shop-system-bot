@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" id="htmlLang" dir="ltr">
+<html lang="en" id="htmlRoot" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DealerX | Dashboard</title>
+    <title>DealerX | Servers</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -11,13 +11,18 @@
 
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <%- include('sidebar', { page: 'dashboard' }) %>
+    <%- include('sidebar', { page: 'servers' }) %>
 
     <div class="main" id="main">
         <div class="navbar dashboard-navbar">
             <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
 
             <div class="user-section">
+                <select id="languageSwitcher" class="lang-select" onchange="setLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                </select>
+
                 <span class="username"><%= user.username %></span>
 
                 <img
@@ -31,16 +36,24 @@
 
         <div class="content">
             <div class="page-header">
-                <h2>Your Servers <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i></h2>
-                <p>Choose the server you want to manage</p>
+                <h2>
+                    <span class="lang-text" data-en="Your Servers" data-ar="سيرفراتك">Your Servers</span>
+                    <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>
+                </h2>
+
+                <p class="lang-text" data-en="Choose the server you want to manage" data-ar="اختر السيرفر الذي تريد إدارته">
+                    Choose the server you want to manage
+                </p>
             </div>
 
             <div class="grid">
                 <% if (!guilds.length) { %>
                     <div class="card">
                         <i class="fa-solid fa-circle-info fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
-                        <h3>No Servers Found</h3>
-                        <p style="color:#888;">No available guilds to manage right now</p>
+                        <h3 class="lang-text" data-en="No Servers Found" data-ar="لا توجد سيرفرات">No Servers Found</h3>
+                        <p class="lang-text" data-en="No available guilds to manage right now" data-ar="لا توجد سيرفرات متاحة للإدارة الآن">
+                            No available guilds to manage right now
+                        </p>
                     </div>
                 <% } %>
 
@@ -56,7 +69,7 @@
                         <p class="guild-id">ID: <%= guild.id %></p>
 
                         <a href="/server/<%= guild.id %>" class="btn-manage">
-                            <i class="fa-solid fa-sliders"></i> Manage Server
+                            <span class="lang-text" data-en="Manage Server" data-ar="إدارة السيرفر">Manage Server</span>
                         </a>
                     </div>
                 <% }) %>
@@ -78,6 +91,34 @@
                 main.classList.toggle("collapsed");
             }
         }
+
+        function applyLanguage(lang) {
+            const root = document.getElementById("htmlRoot");
+            const switcher = document.getElementById("languageSwitcher");
+            const elements = document.querySelectorAll(".lang-text");
+
+            if (lang === "ar") {
+                root.setAttribute("lang", "ar");
+                root.setAttribute("dir", "rtl");
+            } else {
+                root.setAttribute("lang", "en");
+                root.setAttribute("dir", "ltr");
+            }
+
+            elements.forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`);
+            });
+
+            if (switcher) switcher.value = lang;
+            localStorage.setItem("siteLang", lang);
+        }
+
+        function setLanguage(lang) {
+            applyLanguage(lang);
+        }
+
+        const savedLang = localStorage.getItem("siteLang") || "en";
+        applyLanguage(savedLang);
     </script>
 </body>
 </html>
