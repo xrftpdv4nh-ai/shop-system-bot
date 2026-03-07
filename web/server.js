@@ -41,8 +41,11 @@ function startWebServer(client) {
     // --- المسارات (Routes) ---
 
     app.get("/", (req, res) => {
-        // تأكد مليون في المية إن فيه ملف اسمه index.ejs جوه views
-        res.render("index", { user: req.user, clientID: process.env.CLIENT_ID });
+        res.render("home", { user: req.user, clientID: process.env.CLIENT_ID });
+    });
+
+    app.get("/home", (req, res) => {
+        res.render("home", { user: req.user, clientID: process.env.CLIENT_ID });
     });
 
     app.get("/login", passport.authenticate("discord"));
@@ -94,7 +97,8 @@ function startWebServer(client) {
 
     app.get("/dashboard", (req, res) => {
         if (!req.isAuthenticated()) return res.redirect("/login");
-        const adminGuilds = req.user.guilds.filter(g => (g.permissions & 0x8) === 0x8);
+        const userGuilds = Array.isArray(req.user?.guilds) ? req.user.guilds : [];
+        const adminGuilds = userGuilds.filter(g => (g.permissions & 0x8) === 0x8);
         res.render("dashboard", { user: req.user, guilds: adminGuilds });
     });
 
