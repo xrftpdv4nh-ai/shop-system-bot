@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DealerX | Dashboard</title>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -15,30 +14,33 @@
     <%- include('sidebar', { page: 'dashboard' }) %>
 
     <div class="main" id="main">
-        <%- include('navbar', { user: user }) %>
+        <div class="navbar dashboard-navbar">
+            <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+
+            <div class="user-section">
+                <span class="username"><%= user.username %></span>
+
+                <img
+                    src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                    class="avatar"
+                    alt="avatar"
+                    onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+                >
+            </div>
+        </div>
 
         <div class="content">
             <div class="page-header">
-                <h2 style="margin: 0 0 5px 0;">
-                    <span class="lang" data-en="Your Servers" data-ar="سيرفراتك">Your Servers</span>
-                    <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>
-                </h2>
-
-                <p class="lang" data-en="Choose the server you want to manage" data-ar="اختر السيرفر الذي تود إدارته" style="color:#888; margin: 0;">
-                    Choose the server you want to manage
-                </p>
+                <h2>Your Servers <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i></h2>
+                <p>Choose the server you want to manage</p>
             </div>
 
             <div class="grid">
                 <% if (!guilds.length) { %>
                     <div class="card">
                         <i class="fa-solid fa-circle-info fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
-                        <h3>
-                            <span class="lang" data-en="No Servers Found" data-ar="لا توجد سيرفرات">No Servers Found</span>
-                        </h3>
-                        <p class="lang" data-en="No available guilds to manage right now" data-ar="لا توجد سيرفرات متاحة للإدارة الآن" style="color:#888;">
-                            No available guilds to manage right now
-                        </p>
+                        <h3>No Servers Found</h3>
+                        <p style="color:#888;">No available guilds to manage right now</p>
                     </div>
                 <% } %>
 
@@ -50,17 +52,11 @@
                             <div class="server-icon-fallback"><%= guild.name.charAt(0) %></div>
                         <% } %>
 
-                        <h3 style="margin: 0 0 5px 0; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <%= guild.name %>
-                        </h3>
+                        <h3 class="guild-name"><%= guild.name %></h3>
+                        <p class="guild-id">ID: <%= guild.id %></p>
 
-                        <p style="color: #666; font-size: 12px; margin: 0 0 20px 0;">
-                            ID: <%= guild.id %>
-                        </p>
-
-                        <a href="/server/<%= guild.id %>" class="btn">
-                            <i class="fa-solid fa-sliders"></i>
-                            <span class="lang" data-en="Manage Server" data-ar="إدارة السيرفر">Manage Server</span>
+                        <a href="/server/<%= guild.id %>" class="btn-manage">
+                            <i class="fa-solid fa-sliders"></i> Manage Server
                         </a>
                     </div>
                 <% }) %>
@@ -80,32 +76,6 @@
             } else {
                 sidebar.classList.toggle("collapsed");
                 main.classList.toggle("collapsed");
-            }
-        }
-
-        let isArabic = false;
-        function toggleLang() {
-            isArabic = !isArabic;
-            const htmlTag = document.getElementById("htmlLang");
-            const langBtn = document.getElementById("langBtn");
-            const translatableElements = document.querySelectorAll(".lang");
-
-            if (isArabic) {
-                htmlTag.setAttribute("dir", "rtl");
-                htmlTag.setAttribute("lang", "ar");
-                langBtn.innerText = "EN";
-
-                translatableElements.forEach(el => {
-                    el.innerHTML = el.getAttribute("data-ar");
-                });
-            } else {
-                htmlTag.setAttribute("dir", "ltr");
-                htmlTag.setAttribute("lang", "en");
-                langBtn.innerText = "AR";
-
-                translatableElements.forEach(el => {
-                    el.innerHTML = el.getAttribute("data-en");
-                });
             }
         }
     </script>
