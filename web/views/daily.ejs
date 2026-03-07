@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DealerX Daily Reward</title>
+
+<style>
+
+body{
+background:#0b0b0b;
+color:white;
+font-family:Arial;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+flex-direction:column;
+}
+
+.card{
+background:#111;
+padding:40px;
+border-radius:12px;
+text-align:center;
+box-shadow:0 0 20px rgba(255,0,0,0.2);
+}
+
+button{
+background:#c1121f;
+border:none;
+padding:14px 28px;
+color:white;
+font-size:18px;
+border-radius:8px;
+cursor:pointer;
+}
+
+button:hover{
+background:#ff1e2e;
+}
+
+.loading{
+display:none;
+margin-top:20px;
+}
+
+.result{
+margin-top:20px;
+font-size:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>👑 Daily Reward</h2>
+<p>Press the button to claim your reward</p>
+
+<button onclick="claimDaily()">Claim Reward</button>
+
+<div class="loading" id="loading">
+Loading reward...
+</div>
+
+<div class="result" id="result"></div>
+
+</div>
+
+<script>
+
+async function claimDaily(){
+
+document.getElementById("loading").style.display="block";
+
+const res = await fetch("/api/daily/claim",{
+method:"POST"
+});
+
+const data = await res.json();
+
+document.getElementById("loading").style.display="none";
+
+if(data.success){
+
+document.getElementById("result").innerHTML =
+`You received <b>${data.reward}</b> crowns`;
+
+}else{
+
+document.getElementById("result").innerHTML =
+data.message;
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
