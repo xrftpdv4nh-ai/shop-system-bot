@@ -21,7 +21,13 @@ module.exports = function startWebServer(client) {
         accessToken: String,
         refreshToken: String,
         guilds: { type: Array, default: [] },
-        lastLogin: { type: Date, default: Date.now }
+        lastLogin: { type: Date, default: Date.now },
+
+        // DAILY SYSTEM
+        lastDaily: {
+            type: Date,
+            default: null
+        }
     });
 
     const User = mongoose.models.User || mongoose.model('User', userSchema);
@@ -80,7 +86,59 @@ module.exports = function startWebServer(client) {
         });
     });
 
+    // ===============================
+    // DAILY PAGE
+    // ===============================
+
+    app.get('/daily', requireAuth, (req, res) => {
+        res.render('daily');
+    });
+
+    app.post('/api/daily/claim', requireAuth, async (req, res) => {
+
+        const user = await User.findById(req.session.userId);
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const cooldown = 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        const last = user.lastDaily ? new Date(user.lastDaily).getTime() : 0;
+
+        if (now - last < cooldown) {
+
+            const remaining = cooldown - (now - last);
+
+            return res.json({
+                success: false,
+                message: "Daily already claimed. Come back later."
+            });
+        }
+
+        const reward = Math.floor(Math.random() * 200) + 150;
+
+        user.credits = (user.credits || 0) + reward;
+        user.lastDaily = new Date();
+
+        await user.save();
+
+        res.json({
+            success: true,
+            reward: reward,
+            balance: user.credits
+        });
+
+    });
+
+    // ===============================
     // Discord OAuth login
+    // ===============================
+
     app.get('/login', (req, res) => {
         const redirectUri = `${process.env.DOMAIN}/callback`;
 
@@ -167,6 +225,7 @@ module.exports = function startWebServer(client) {
 
             req.session.userId = user._id.toString();
             res.redirect('/home');
+
         } catch (error) {
             console.error('Discord callback error:', error.response?.data || error.message);
             res.status(500).send('OAuth failed');
