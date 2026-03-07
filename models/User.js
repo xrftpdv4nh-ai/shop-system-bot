@@ -72,6 +72,11 @@ const userSchema = new mongoose.Schema({
     default: 0
   },
 
+  lastDaily:{
+type:Date,
+default:null
+},
+  
   usageScore: {
     type: Number,
     default: 0
