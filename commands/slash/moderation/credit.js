@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder } = require("discord.js");
 const User = require("../../../models/User");
 
 module.exports = {
@@ -13,7 +13,6 @@ module.exports = {
     ),
 
   async execute(interaction) {
-
     const target = interaction.options.getUser("user") || interaction.user;
 
     let userData = await User.findOne({ discordId: target.id });
@@ -24,16 +23,14 @@ module.exports = {
         username: target.username,
         avatar: target.avatar || null
       });
+    } else {
+      userData.username = target.username;
+      userData.avatar = target.avatar || null;
+      await userData.save();
     }
 
-    const embed = new EmbedBuilder()
-      .setColor("#C1121F")
-      .setTitle("💰 DealerX Credits")
-      .setDescription(`**${target.username}** has **${userData.credits || 0}** credits`)
-      .setThumbnail(target.displayAvatarURL({ size: 256 }))
-      .setFooter({ text: "DealerX Economy System" })
-      .setTimestamp();
-
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({
+      content: `💰 | ${target} has **${(userData.credits || 0).toLocaleString()}** credits.`
+    });
   }
 };
