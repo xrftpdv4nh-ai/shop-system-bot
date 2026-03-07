@@ -2,11 +2,7 @@
     <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
     <div class="user-section">
         <button class="lang-btn" onclick="toggleLang()" id="langBtn">AR</button>
-        <% if (user) { %>
-            <span><%= user.username %></span>
-            <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" class="avatar">
-        <% } else { %>
-            <a href="/login" class="logo" style="font-size: 14px;">Login with Discord</a>
-        <% } %>
+        <span><%= user.username %></span>
+        <img src="https://cdn.discordapp.com/avatars/<%=user.id%>/<%=user.avatar%>.png" class="avatar">
     </div>
 </div>
