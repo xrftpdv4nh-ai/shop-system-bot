@@ -30,7 +30,7 @@ module.exports = {
     let activeChannels = JSON.parse(fs.readFileSync(lineDB));
 
     /* =========================
-       نظام المستخدم / Message XP / Credits
+       نظام المستخدم / Message XP / Credits / Usage
     ========================= */
     let userData = await User.findOne({ discordId: message.author.id });
 
@@ -45,8 +45,11 @@ module.exports = {
       userData.avatar = message.author.avatar || null;
     }
 
-    // زيادة عدد الرسائل دائمًا
+    // كل رسالة = +1 messageCount
     userData.messageCount += 1;
+
+    // كل رسالة = +2 usage
+    userData.usageScore += 2;
 
     // XP cooldown كل 15 ثانية
     const cooldownKey = `${message.guild.id}-${message.author.id}`;
@@ -68,8 +71,7 @@ module.exports = {
     const newLevel = calculateLevel(userData.messageXp);
     userData.messageLevel = newLevel;
 
-    // تحديث usage و rank
-    userData.usageScore = calculateUsageScore(userData);
+    // تحديث rank
     userData.rankScore = calculateRankScore(userData);
 
     await userData.save();
@@ -216,7 +218,7 @@ module.exports = {
         .setFooter({ text: "Obscura • Admin Call System" })
         .setTimestamp();
 
-      await targetUser.send({ embeds: [dmEmbed] });
+        await targetUser.send({ embeds: [dmEmbed] });
     } catch {
       await message.channel.send("⚠️ لم أتمكن من إرسال رسالة خاصة للمستخدم");
     }
