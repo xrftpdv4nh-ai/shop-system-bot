@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealerX | <%= guild.name %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <%- include('sidebar', { page: 'servers' }) %>
+
+    <div class="main" id="main">
+        <div class="navbar dashboard-navbar">
+            <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+
+            <div class="user-section">
+                <span class="username"><%= user.username %></span>
+                <img
+                    src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                    class="avatar"
+                    alt="avatar"
+                    onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+                >
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="page-header">
+                <h2>Manage Server <i class="fa-solid fa-sliders" style="color:var(--main-red); font-size:20px;"></i></h2>
+                <p>Configure commands and shortcuts for this server.</p>
+            </div>
+
+            <div class="grid">
+                <div class="card" style="grid-column: span 12; text-align:left;">
+                    <div style="display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
+                        <% if (guild.icon) { %>
+                            <img
+                                src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png"
+                                class="server-icon"
+                                style="margin:0; width:90px; height:90px;"
+                            >
+                        <% } else { %>
+                            <div class="server-icon-fallback" style="margin:0; width:90px; height:90px;"><%= guild.name.charAt(0) %></div>
+                        <% } %>
+
+                        <div>
+                            <h3 style="margin:0 0 8px; font-size:28px; color:white;"><%= guild.name %></h3>
+                            <p style="margin:0; color:#9f9f9f;">Guild ID: <%= guild.id %></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: span 12; text-align:left;">
+                    <h3 style="margin-top:0; color:white;">Command Settings</h3>
+                    <p style="color:#a8a8a8;">Select commands to disable in this server.</p>
+
+                    <form action="/server/<%= guild.id %>/settings" method="POST">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin:20px 0 24px;">
+                            <% const commandList = ['profile', 'crowns', 'daily', 'top', 'leaderboard']; %>
+                            <% commandList.forEach(cmd => { %>
+                                <label style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); padding:14px; border-radius:14px; border:1px solid rgba(255,30,46,0.08); color:white;">
+                                    <input
+                                        type="checkbox"
+                                        name="disabledCommands"
+                                        value="<%= cmd %>"
+                                        <%= (config.disabledCommands || []).includes(cmd) ? 'checked' : '' %>
+                                    >
+                                    Disable /<%= cmd %>
+                                </label>
+                            <% }) %>
+                        </div>
+
+                        <h3 style="color:white;">Shortcuts</h3>
+                        <p style="color:#a8a8a8;">Add quick shortcut messages for this server.</p>
+
+                        <div id="shortcut-wrapper">
+                            <% if (config.shortcuts && config.shortcuts.length) { %>
+                                <% config.shortcuts.forEach(shortcut => { %>
+                                    <div class="shortcut-row" style="display:grid; gap:12px; margin-bottom:14px;">
+                                        <input
+                                            type="text"
+                                            name="shortcutName"
+                                            placeholder="Shortcut name"
+                                            value="<%= shortcut.name %>"
+                                            style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white;"
+                                        >
+                                        <textarea
+                                            name="shortcutContent"
+                                            placeholder="Shortcut content"
+                                            rows="4"
+                                            style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; resize:vertical;"
+                                        ><%= shortcut.content %></textarea>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <div class="shortcut-row" style="display:grid; gap:12px; margin-bottom:14px;">
+                                    <input
+                                        type="text"
+                                        name="shortcutName"
+                                        placeholder="Shortcut name"
+                                        style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white;"
+                                    >
+                                    <textarea
+                                        name="shortcutContent"
+                                        placeholder="Shortcut content"
+                                        rows="4"
+                                        style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; resize:vertical;"
+                                    ></textarea>
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <button type="button" onclick="addShortcut()" class="btn-manage" style="margin-bottom:16px; max-width:260px;">
+                            <i class="fa-solid fa-plus"></i>
+                            Add Shortcut
+                        </button>
+
+                        <button type="submit" class="btn-manage">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Save Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main");
+            const overlay = document.getElementById("overlay");
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("collapsed");
+                main.classList.toggle("collapsed");
+            }
+        }
+
+        function addShortcut() {
+            const wrapper = document.getElementById("shortcut-wrapper");
+            const row = document.createElement("div");
+            row.className = "shortcut-row";
+            row.style.display = "grid";
+            row.style.gap = "12px";
+            row.style.marginBottom = "14px";
+
+            row.innerHTML = `
+                <input
+                    type="text"
+                    name="shortcutName"
+                    placeholder="Shortcut name"
+                    style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white;"
+                >
+                <textarea
+                    name="shortcutContent"
+                    placeholder="Shortcut content"
+                    rows="4"
+                    style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; resize:vertical;"
+                ></textarea>
+            `;
+
+            wrapper.appendChild(row);
+        }
+    </script>
+</body>
+</html>
