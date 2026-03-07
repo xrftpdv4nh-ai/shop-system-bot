@@ -42,7 +42,10 @@ module.exports = {
           userData.avatar = interaction.user.avatar || null;
         }
 
+        // كل أمر سلاش = 1 usage
         userData.commandUsage += 1;
+
+        // تحديث السكور والرانك
         userData.usageScore = calculateUsageScore(userData);
         userData.rankScore = calculateRankScore(userData);
 
