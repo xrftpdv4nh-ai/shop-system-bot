@@ -64,10 +64,23 @@ module.exports = function startWebServer(client) {
         next();
     }
 
+    // Landing page before login
     app.get('/', (req, res) => {
-        res.render('home', { page: 'home' });
+        if (req.user) {
+            return res.redirect('/home');
+        }
+
+        res.render('landing');
     });
 
+    // Internal home after login
+    app.get('/home', requireAuth, (req, res) => {
+        res.render('home', {
+            page: 'home'
+        });
+    });
+
+    // Discord OAuth login
     app.get('/login', (req, res) => {
         const redirectUri = `${process.env.DOMAIN}/callback`;
 
@@ -81,6 +94,7 @@ module.exports = function startWebServer(client) {
         res.redirect(discordAuthUrl);
     });
 
+    // Discord callback
     app.get('/callback', async (req, res) => {
         const code = req.query.code;
 
@@ -152,20 +166,27 @@ module.exports = function startWebServer(client) {
             }
 
             req.session.userId = user._id.toString();
-            res.redirect('/dashboard');
+            res.redirect('/home');
         } catch (error) {
             console.error('Discord callback error:', error.response?.data || error.message);
             res.status(500).send('OAuth failed');
         }
     });
 
-    app.get('/dashboard', requireAuth, (req, res) => {
+    // Servers page
+    app.get('/servers', requireAuth, (req, res) => {
         res.render('dashboard', {
-            page: 'dashboard',
+            page: 'servers',
             guilds: req.user.guilds || []
         });
     });
 
+    // Old dashboard route -> redirect to servers
+    app.get('/dashboard', requireAuth, (req, res) => {
+        res.redirect('/servers');
+    });
+
+    // Single server page
     app.get('/server/:id', requireAuth, (req, res) => {
         const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
 
@@ -176,6 +197,7 @@ module.exports = function startWebServer(client) {
         res.send(`Managing server: ${guild.name}`);
     });
 
+    // Logout
     app.get('/logout', (req, res) => {
         req.session.destroy(() => {
             res.redirect('/');
