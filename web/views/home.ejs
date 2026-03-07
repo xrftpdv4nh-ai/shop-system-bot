@@ -1,36 +1,106 @@
 <!DOCTYPE html>
 <html lang="en" id="htmlLang" dir="ltr">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealerX | Home</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <%- include('sidebar', {page: 'home'}) %>
-    
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <%- include('sidebar', { page: page }) %>
+
     <div class="main" id="main">
-        <%- include('navbar') %>
-        
-        <div class="content" style="text-align: center; padding-top: 50px;">
-            <h1 style="color: var(--main-red);">DealerX Bot</h1>
-            <p>The ultimate management solution for your discord server.</p>
-            
-            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 40px;">
+        <%- include('navbar', { user: user }) %>
+
+        <div class="content">
+            <div class="page-header">
+                <h2 style="margin: 0 0 5px 0;">
+                    <span class="lang" data-en="Welcome Home" data-ar="مرحبًا بك">Welcome Home</span>
+                    <i class="fa-solid fa-house" style="color:var(--main-red); font-size:20px;"></i>
+                </h2>
+
+                <p class="lang" data-en="Manage your bot and servers from one place" data-ar="قم بإدارة البوت والسيرفرات من مكان واحد" style="color:#888; margin: 0;">
+                    Manage your bot and servers from one place
+                </p>
+            </div>
+
+            <div class="grid">
                 <div class="card">
-                    <i class="fa-solid fa-server" style="font-size: 30px; color: var(--main-red);"></i>
-                    <h3>150+ Servers</h3>
+                    <i class="fa-solid fa-user fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
+                    <h3><span class="lang" data-en="Account" data-ar="الحساب">Account</span></h3>
+                    <p style="color:#888;">
+                        <span class="lang" data-en="Logged in as" data-ar="تم تسجيل الدخول باسم">Logged in as</span>
+                        <strong><%= user.username %></strong>
+                    </p>
                 </div>
+
                 <div class="card">
-                    <i class="fa-solid fa-users" style="font-size: 30px; color: var(--main-red);"></i>
-                    <h3>50k+ Users</h3>
+                    <i class="fa-solid fa-server fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
+                    <h3><span class="lang" data-en="Servers" data-ar="السيرفرات">Servers</span></h3>
+                    <p class="lang" data-en="Go to dashboard to manage your servers" data-ar="اذهب إلى لوحة التحكم لإدارة سيرفراتك" style="color:#888;">
+                        Go to dashboard to manage your servers
+                    </p>
+                    <a href="/dashboard" class="btn">
+                        <span class="lang" data-en="Open Dashboard" data-ar="فتح لوحة التحكم">Open Dashboard</span>
+                    </a>
                 </div>
+
                 <div class="card">
-                    <i class="fa-solid fa-check-double" style="font-size: 30px; color: var(--main-red);"></i>
-                    <h3>99.9% Uptime</h3>
+                    <i class="fa-solid fa-gear fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
+                    <h3><span class="lang" data-en="Settings" data-ar="الإعدادات">Settings</span></h3>
+                    <p class="lang" data-en="Customize your bot dashboard later" data-ar="خصص لوحة تحكم البوت لاحقًا" style="color:#888;">
+                        Customize your bot dashboard later
+                    </p>
                 </div>
             </div>
         </div>
     </div>
-    <script src="/script.js"></script>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main");
+            const overlay = document.getElementById("overlay");
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("collapsed");
+                main.classList.toggle("collapsed");
+            }
+        }
+
+        let isArabic = false;
+        function toggleLang() {
+            isArabic = !isArabic;
+            const htmlTag = document.getElementById("htmlLang");
+            const langBtn = document.getElementById("langBtn");
+            const translatableElements = document.querySelectorAll(".lang");
+
+            if (isArabic) {
+                htmlTag.setAttribute("dir", "rtl");
+                htmlTag.setAttribute("lang", "ar");
+                langBtn.innerText = "EN";
+
+                translatableElements.forEach(el => {
+                    el.innerHTML = el.getAttribute("data-ar");
+                });
+            } else {
+                htmlTag.setAttribute("dir", "ltr");
+                htmlTag.setAttribute("lang", "en");
+                langBtn.innerText = "AR";
+
+                translatableElements.forEach(el => {
+                    el.innerHTML = el.getAttribute("data-en");
+                });
+            }
+        }
+    </script>
 </body>
 </html>
