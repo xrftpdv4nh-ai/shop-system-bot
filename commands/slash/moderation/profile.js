@@ -50,7 +50,7 @@ module.exports = {
     const profileBuffer = await createProfileCard({
       username: targetUser.username,
       avatarURL,
-      crowns: userData.credit || 0,
+      crowns: userData.credits || 0,
       messageLevel: userData.messageLevel || 1,
       voiceLevel: userData.voiceLevel || 1,
       rank,
