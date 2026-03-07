@@ -66,7 +66,7 @@ async function createProfileCard(data) {
   const {
     username = "Unknown User",
     avatarURL = "https://cdn.discordapp.com/embed/avatars/0.png",
-    credits = 0,
+    crowns = 0,
     messageLevel = 1,
     voiceLevel = 1,
     rank = 0,
@@ -167,7 +167,7 @@ async function createProfileCard(data) {
   const stats = [
     { label: "MSG LVL", value: `${messageLevel}`, color: "#ff4b57" },
     { label: "VOICE LVL", value: `${voiceLevel}`, color: "#ffbf66" },
-    { label: "CREDITS", value: formatNumber(credits), color: "#8cd4ff" },
+    { label: "CROWNS", value: formatNumber(credits), color: "#8cd4ff" },
     { label: "RANK", value: `#${rank || 0}`, color: "#b992ff" }
   ];
 
