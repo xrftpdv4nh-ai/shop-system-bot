@@ -1,34 +1,113 @@
 <!DOCTYPE html>
 <html lang="en" id="htmlLang" dir="ltr">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealerX | Dashboard</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <%- include('sidebar', { page: 'dashboard' }) %>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <%- include('sidebar', { page: page }) %>
 
     <div class="main" id="main">
-        <%- include('navbar') %>
+        <%- include('navbar', { user: user }) %>
 
         <div class="content">
-            <h2>Your Managed Servers</h2>
+            <div class="page-header">
+                <h2 style="margin: 0 0 5px 0;">
+                    <span class="lang" data-en="Your Servers" data-ar="سيرفراتك">Your Servers</span>
+                    <i class="fa-solid fa-server" style="color:var(--main-red); font-size:20px;"></i>
+                </h2>
 
-            <% if (!guilds || guilds.length === 0) { %>
-                <div class="card" style="margin-top: 20px;">
-                    <p>No admin servers found for this account.</p>
-                </div>
-            <% } else { %>
-                <div class="grid" style="margin-top: 20px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">
-                    <% guilds.forEach(guild => { %>
-                        <div class="card">
-                            <h3><%= guild.name %></h3>
-                            <p>ID: <%= guild.id %></p>
-                        </div>
-                    <% }) %>
-                </div>
-            <% } %>
+                <p class="lang" data-en="Choose the server you want to manage" data-ar="اختر السيرفر الذي تود إدارته" style="color:#888; margin: 0;">
+                    Choose the server you want to manage
+                </p>
+            </div>
+
+            <div class="grid">
+                <% if (!guilds.length) { %>
+                    <div class="card">
+                        <i class="fa-solid fa-circle-info fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
+                        <h3>
+                            <span class="lang" data-en="No Servers Found" data-ar="لا توجد سيرفرات">No Servers Found</span>
+                        </h3>
+                        <p class="lang" data-en="No available guilds to manage right now" data-ar="لا توجد سيرفرات متاحة للإدارة الآن" style="color:#888;">
+                            No available guilds to manage right now
+                        </p>
+                    </div>
+                <% } %>
+
+                <% guilds.forEach(guild => { %>
+                    <div class="card">
+                        <% if (guild.icon) { %>
+                            <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" class="server-icon">
+                        <% } else { %>
+                            <div class="server-icon-fallback"><%= guild.name.charAt(0) %></div>
+                        <% } %>
+
+                        <h3 style="margin: 0 0 5px 0; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <%= guild.name %>
+                        </h3>
+
+                        <p style="color: #666; font-size: 12px; margin: 0 0 20px 0;">
+                            ID: <%= guild.id %>
+                        </p>
+
+                        <a href="/server/<%= guild.id %>" class="btn">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span class="lang" data-en="Manage Server" data-ar="إدارة السيرفر">Manage Server</span>
+                        </a>
+                    </div>
+                <% }) %>
+            </div>
         </div>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main");
+            const overlay = document.getElementById("overlay");
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("collapsed");
+                main.classList.toggle("collapsed");
+            }
+        }
+
+        let isArabic = false;
+        function toggleLang() {
+            isArabic = !isArabic;
+            const htmlTag = document.getElementById("htmlLang");
+            const langBtn = document.getElementById("langBtn");
+            const translatableElements = document.querySelectorAll(".lang");
+
+            if (isArabic) {
+                htmlTag.setAttribute("dir", "rtl");
+                htmlTag.setAttribute("lang", "ar");
+                langBtn.innerText = "EN";
+
+                translatableElements.forEach(el => {
+                    el.innerHTML = el.getAttribute("data-ar");
+                });
+            } else {
+                htmlTag.setAttribute("dir", "ltr");
+                htmlTag.setAttribute("lang", "en");
+                langBtn.innerText = "AR";
+
+                translatableElements.forEach(el => {
+                    el.innerHTML = el.getAttribute("data-en");
+                });
+            }
+        }
+    </script>
 </body>
 </html>
