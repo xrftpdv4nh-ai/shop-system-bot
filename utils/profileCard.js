@@ -5,6 +5,10 @@ const {
 } = require("canvas");
 const path = require("path");
 
+registerFont(path.join(__dirname, "../assets/fonts/Cairo-Bold.ttf"), {
+  family: "Cairo"
+});
+
 function formatNumber(num) {
   if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
   if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
@@ -52,8 +56,8 @@ function drawCircleImage(ctx, image, x, y, size) {
 }
 
 async function createProfileCard(data) {
-  const width = 1200;
-  const height = 600;
+  const width = 1000;
+  const height = 500;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
@@ -70,7 +74,7 @@ async function createProfileCard(data) {
     messageXp = 0
   } = data;
 
-  const safeUsername = shortenText(username, 16);
+  const safeUsername = shortenText(username, 15);
 
   const nextLevelXp = getXpRequiredForLevel(messageLevel);
   const currentLevelBaseXp = getCurrentLevelBaseXp(messageLevel);
@@ -91,60 +95,74 @@ async function createProfileCard(data) {
     ctx.fillRect(0, 0, width, height);
   }
 
-  // dark overlay
-  ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
+  // overlay
+  ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
   ctx.fillRect(0, 0, width, height);
 
   // glow
-  const glowGradient = ctx.createRadialGradient(860, 220, 80, 860, 220, 420);
-  glowGradient.addColorStop(0, "rgba(255, 40, 40, 0.26)");
+  const glowGradient = ctx.createRadialGradient(720, 180, 60, 720, 180, 320);
+  glowGradient.addColorStop(0, "rgba(255, 40, 40, 0.28)");
   glowGradient.addColorStop(1, "rgba(255, 40, 40, 0)");
   ctx.fillStyle = glowGradient;
   ctx.fillRect(0, 0, width, height);
 
-  // left panel
-  ctx.fillStyle = "rgba(12, 12, 12, 0.58)";
-  drawRoundedRect(ctx, 36, 36, 350, 528, 36, true, false);
-
-  // right panel
-  ctx.fillStyle = "rgba(15, 15, 15, 0.22)";
-  drawRoundedRect(ctx, 410, 36, 754, 528, 36, true, false);
-
-  // border glow
+  // outer border
   ctx.strokeStyle = "rgba(255, 45, 45, 0.24)";
   ctx.lineWidth = 2;
-  drawRoundedRect(ctx, 36, 36, 1128, 528, 36, false, true);
+  drawRoundedRect(ctx, 20, 20, 960, 460, 28, false, true);
+
+  // left panel
+  ctx.fillStyle = "rgba(10, 10, 10, 0.58)";
+  drawRoundedRect(ctx, 30, 30, 250, 440, 28, true, false);
+
+  // right panel
+  ctx.fillStyle = "rgba(15, 15, 15, 0.20)";
+  drawRoundedRect(ctx, 300, 30, 670, 440, 28, true, false);
 
   // avatar
   const avatar = await loadImage(avatarURL);
-  drawCircleImage(ctx, avatar, 82, 82, 190);
+  drawCircleImage(ctx, avatar, 58, 56, 140);
 
   // avatar ring
   ctx.beginPath();
-  ctx.arc(177, 177, 101, 0, Math.PI * 2);
+  ctx.arc(128, 126, 76, 0, Math.PI * 2);
   ctx.strokeStyle = "#ff2a36";
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 5;
   ctx.stroke();
 
-  // logo text
-  ctx.font = "bold 46px Sans";
+  // username
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(safeUsername, 430, 135);
+  ctx.font = "34px Cairo";
+  ctx.fillText(safeUsername, 340, 100);
 
-  ctx.font = "bold 26px Sans";
+  // subtitle
   ctx.fillStyle = "#ff2a36";
-  ctx.fillText("DealerX Profile", 430, 180);
+  ctx.font = "20px Cairo";
+  ctx.fillText("DealerX Profile", 340, 138);
 
-  // small badge
+  // badge
   ctx.fillStyle = "rgba(255, 30, 46, 0.18)";
-  drawRoundedRect(ctx, 430, 205, 210, 48, 18, true, false);
-  ctx.font = "bold 22px Sans";
-  ctx.fillStyle = "#ffd9dc";
-  ctx.fillText("System User", 462, 237);
+  drawRoundedRect(ctx, 340, 158, 170, 40, 14, true, false);
 
-  // left stats labels
-  const startY = 318;
-  const gap = 78;
+  ctx.fillStyle = "#ffd9dc";
+  ctx.font = "18px Cairo";
+  ctx.fillText("System User", 362, 185);
+
+  // usage box
+  ctx.fillStyle = "rgba(255,255,255,0.05)";
+  drawRoundedRect(ctx, 700, 58, 220, 95, 20, true, false);
+
+  ctx.fillStyle = "#ff5964";
+  ctx.font = "20px Cairo";
+  ctx.fillText("USAGE", 725, 92);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "36px Cairo";
+  ctx.fillText(formatNumber(usage), 725, 132);
+
+  // left stats
+  const startY = 250;
+  const gap = 72;
 
   const stats = [
     { label: "MSG LVL", value: `${messageLevel}`, color: "#ff4b57" },
@@ -156,64 +174,53 @@ async function createProfileCard(data) {
   stats.forEach((item, index) => {
     const y = startY + gap * index;
 
-    ctx.font = "bold 24px Sans";
     ctx.fillStyle = item.color;
-    ctx.fillText(item.label, 84, y);
+    ctx.font = "18px Cairo";
+    ctx.fillText(item.label, 58, y);
 
-    ctx.font = "bold 44px Sans";
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(item.value, 84, y + 42);
+    ctx.font = "34px Cairo";
+    ctx.fillText(item.value, 58, y + 34);
   });
 
-  // usage box
+  // progress card
   ctx.fillStyle = "rgba(255,255,255,0.05)";
-  drawRoundedRect(ctx, 700, 82, 380, 120, 28, true, false);
-  ctx.font = "bold 28px Sans";
-  ctx.fillStyle = "#ff5964";
-  ctx.fillText("USAGE", 740, 130);
-  ctx.font = "bold 52px Sans";
+  drawRoundedRect(ctx, 340, 250, 580, 145, 22, true, false);
+
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(formatNumber(usage), 740, 185);
+  ctx.font = "24px Cairo";
+  ctx.fillText("Message Progress", 370, 292);
 
-  // main info panel
-  ctx.fillStyle = "rgba(255,255,255,0.045)";
-  drawRoundedRect(ctx, 430, 305, 650, 180, 26, true, false);
-
-  ctx.font = "bold 30px Sans";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText("Message Progress", 470, 355);
-
-  ctx.font = "24px Sans";
   ctx.fillStyle = "#d7d7d7";
-  ctx.fillText(`Current XP: ${Math.floor(messageXp)}`, 470, 398);
-  ctx.fillText(`Remaining XP: ${Math.max(0, requiredProgressXp - currentProgressXp)}`, 470, 436);
+  ctx.font = "18px Cairo";
+  ctx.fillText(`Current XP: ${Math.floor(messageXp)}`, 370, 328);
+  ctx.fillText(`Remaining XP: ${Math.max(0, requiredProgressXp - currentProgressXp)}`, 370, 358);
 
-  // progress bar bg
-  ctx.fillStyle = "rgba(255,255,255,0.12)";
-  drawRoundedRect(ctx, 470, 455, 560, 28, 14, true, false);
+  // bar background
+  ctx.fillStyle = "rgba(255,255,255,0.16)";
+  drawRoundedRect(ctx, 370, 372, 500, 22, 11, true, false);
 
-  // progress fill
-  const progressWidth = 560 * progressPercent;
-  const progressGradient = ctx.createLinearGradient(470, 0, 1030, 0);
+  // bar fill
+  const progressWidth = 500 * progressPercent;
+  const progressGradient = ctx.createLinearGradient(370, 0, 870, 0);
   progressGradient.addColorStop(0, "#c1121f");
   progressGradient.addColorStop(1, "#ff2a36");
   ctx.fillStyle = progressGradient;
-  drawRoundedRect(ctx, 470, 455, Math.max(18, progressWidth), 28, 14, true, false);
+  drawRoundedRect(ctx, 370, 372, Math.max(14, progressWidth), 22, 11, true, false);
 
   // progress text
-  ctx.font = "bold 22px Sans";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(`${currentProgressXp} / ${requiredProgressXp}`, 470, 520);
+  ctx.font = "18px Cairo";
+  ctx.fillText(`${currentProgressXp} / ${requiredProgressXp}`, 370, 420);
 
-  // total xp bottom right
-  ctx.font = "bold 24px Sans";
   ctx.fillStyle = "#ffd6d9";
-  ctx.fillText(`TOTAL MESSAGE XP: ${Math.floor(messageXp)}`, 760, 520);
+  ctx.font = "17px Cairo";
+  ctx.fillText(`TOTAL MESSAGE XP: ${Math.floor(messageXp)}`, 650, 420);
 
   // footer
-  ctx.font = "20px Sans";
   ctx.fillStyle = "rgba(255,255,255,0.75)";
-  ctx.fillText("DealerX • Powered Profile Card", 835, 560);
+  ctx.font = "15px Cairo";
+  ctx.fillText("DealerX • Powered Profile Card", 720, 462);
 
   return canvas.toBuffer("image/png");
 }
