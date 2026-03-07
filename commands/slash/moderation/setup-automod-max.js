@@ -1,10 +1,7 @@
 const {
     SlashCommandBuilder,
     PermissionFlagsBits,
-    AutoModerationRuleTriggerType,
-    AutoModerationActionType,
-    AutoModerationRuleEventType,
-    AutoModerationRuleKeywordPresetType
+    AutoModerationActionType
 } = require('discord.js');
 
 module.exports = {
@@ -38,6 +35,10 @@ module.exports = {
                 return interaction.editReply('❌ البوت محتاج صلاحية Manage Server.');
             }
 
+            if (!guild.autoModerationRules) {
+                return interaction.editReply('❌ AutoMod غير مدعوم في نسخة discord.js الحالية.');
+            }
+
             const existingRules = await guild.autoModerationRules.fetch().catch(() => null);
             if (!existingRules) {
                 return interaction.editReply('❌ مقدرتش أجيب قواعد AutoMod الحالية.');
@@ -45,11 +46,17 @@ module.exports = {
 
             const existingNames = new Set(existingRules.map(r => r.name));
 
+            const MessageSend = 1;
+            const Keyword = 1;
+            const Spam = 3;
+            const KeywordPreset = 4;
+            const MentionSpam = 5;
+
             const rulesToCreate = [
                 {
                     name: 'AM Bad Words 1',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.Keyword,
+                    eventType: MessageSend,
+                    triggerType: Keyword,
                     triggerMetadata: {
                         keywordFilter: ['badword1', 'badword2', 'curse1', 'curse2']
                     },
@@ -62,8 +69,8 @@ module.exports = {
                 },
                 {
                     name: 'AM Bad Words 2',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.Keyword,
+                    eventType: MessageSend,
+                    triggerType: Keyword,
                     triggerMetadata: {
                         keywordFilter: ['insult1', 'insult2', 'toxic1', 'toxic2']
                     },
@@ -76,8 +83,8 @@ module.exports = {
                 },
                 {
                     name: 'AM Invite Links',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.Keyword,
+                    eventType: MessageSend,
+                    triggerType: Keyword,
                     triggerMetadata: {
                         keywordFilter: ['discord.gg', 'discord.com/invite']
                     },
@@ -90,8 +97,8 @@ module.exports = {
                 },
                 {
                     name: 'AM Scam Words',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.Keyword,
+                    eventType: MessageSend,
+                    triggerType: Keyword,
                     triggerMetadata: {
                         keywordFilter: ['free nitro', 'claim reward', 'steam gift', 'free gift']
                     },
@@ -104,8 +111,8 @@ module.exports = {
                 },
                 {
                     name: 'AM Ad Links',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.Keyword,
+                    eventType: MessageSend,
+                    triggerType: Keyword,
                     triggerMetadata: {
                         keywordFilter: ['http://', 'https://', 'www.']
                     },
@@ -118,8 +125,8 @@ module.exports = {
                 },
                 {
                     name: 'AM Fake Giveaway',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.Keyword,
+                    eventType: MessageSend,
+                    triggerType: Keyword,
                     triggerMetadata: {
                         keywordFilter: ['giveaway winner', 'limited offer', 'urgent claim', 'click here now']
                     },
@@ -132,8 +139,8 @@ module.exports = {
                 },
                 {
                     name: 'AM Spam Filter',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.Spam,
+                    eventType: MessageSend,
+                    triggerType: Spam,
                     triggerMetadata: {},
                     actions: [
                         {
@@ -144,14 +151,10 @@ module.exports = {
                 },
                 {
                     name: 'AM Preset Filter',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.KeywordPreset,
+                    eventType: MessageSend,
+                    triggerType: KeywordPreset,
                     triggerMetadata: {
-                        presets: [
-                            AutoModerationRuleKeywordPresetType.Profanity,
-                            AutoModerationRuleKeywordPresetType.SexualContent,
-                            AutoModerationRuleKeywordPresetType.Slurs
-                        ],
+                        presets: [1, 2, 3],
                         allowList: []
                     },
                     actions: [
@@ -163,8 +166,8 @@ module.exports = {
                 },
                 {
                     name: 'AM Mention Spam',
-                    eventType: AutoModerationRuleEventType.MessageSend,
-                    triggerType: AutoModerationRuleTriggerType.MentionSpam,
+                    eventType: MessageSend,
+                    triggerType: MentionSpam,
                     triggerMetadata: {
                         mentionTotalLimit: 5
                     },
@@ -209,7 +212,13 @@ module.exports = {
 
         } catch (err) {
             console.error('setup-automod-max error:', err);
-            return interaction.editReply('❌ حصل خطأ أثناء إنشاء AutoMod Rules.');
+            if (interaction.deferred || interaction.replied) {
+                return interaction.editReply('❌ حصل خطأ أثناء إنشاء AutoMod Rules.');
+            }
+            return interaction.reply({
+                content: '❌ حصل خطأ أثناء إنشاء AutoMod Rules.',
+                ephemeral: true
+            });
         }
     }
 };
