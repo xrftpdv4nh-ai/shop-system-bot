@@ -8,12 +8,12 @@ module.exports = function startWebServer(client) {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
-    // MongoDB
-    mongoose.connect(process.env.MONGODB_URI)
+    app.set('trust proxy', 1);
+
+    mongoose.connect(process.env.MONGO_URI)
         .then(() => console.log('MongoDB connected'))
         .catch(err => console.error('MongoDB error:', err));
 
-    // User Schema
     const userSchema = new mongoose.Schema({
         discordId: { type: String, required: true, unique: true },
         username: String,
@@ -26,7 +26,6 @@ module.exports = function startWebServer(client) {
 
     const User = mongoose.models.User || mongoose.model('User', userSchema);
 
-    // App config
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
 
@@ -44,7 +43,6 @@ module.exports = function startWebServer(client) {
         }
     }));
 
-    // تحميل المستخدم من session
     app.use(async (req, res, next) => {
         try {
             if (req.session.userId) {
@@ -66,18 +64,23 @@ module.exports = function startWebServer(client) {
         next();
     }
 
-    // الصفحة الرئيسية
     app.get('/', (req, res) => {
         res.render('home', { page: 'home' });
     });
 
-    // Discord OAuth login
     app.get('/login', (req, res) => {
-        const redirect = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&scope=identify%20guilds`;
-        res.redirect(redirect);
+        const redirectUri = `${process.env.DOMAIN}/callback`;
+
+        const discordAuthUrl =
+            `https://discord.com/api/oauth2/authorize` +
+            `?client_id=${process.env.CLIENT_ID}` +
+            `&response_type=code` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&scope=identify%20guilds`;
+
+        res.redirect(discordAuthUrl);
     });
 
-    // Discord callback
     app.get('/callback', async (req, res) => {
         const code = req.query.code;
 
@@ -86,15 +89,16 @@ module.exports = function startWebServer(client) {
         }
 
         try {
-            // 1) هات access token
+            const redirectUri = `${process.env.DOMAIN}/callback`;
+
             const tokenResponse = await axios.post(
                 'https://discord.com/api/oauth2/token',
                 new URLSearchParams({
-                    client_id: process.env.DISCORD_CLIENT_ID,
-                    client_secret: process.env.DISCORD_CLIENT_SECRET,
+                    client_id: process.env.CLIENT_ID,
+                    client_secret: process.env.CLIENT_SECRET,
                     grant_type: 'authorization_code',
                     code,
-                    redirect_uri: process.env.DISCORD_REDIRECT_URI
+                    redirect_uri: redirectUri
                 }).toString(),
                 {
                     headers: {
@@ -105,14 +109,12 @@ module.exports = function startWebServer(client) {
 
             const { access_token, refresh_token } = tokenResponse.data;
 
-            // 2) هات بيانات المستخدم
             const userResponse = await axios.get('https://discord.com/api/users/@me', {
                 headers: {
                     Authorization: `Bearer ${access_token}`
                 }
             });
 
-            // 3) هات السيرفرات
             const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
                 headers: {
                     Authorization: `Bearer ${access_token}`
@@ -122,13 +124,11 @@ module.exports = function startWebServer(client) {
             const discordUser = userResponse.data;
             const guilds = guildsResponse.data || [];
 
-            // 4) فلترة السيرفرات اللي يقدر يديرها لو حابب
             const manageableGuilds = guilds.filter(guild => {
                 const permissions = BigInt(guild.permissions);
                 return (permissions & 0x20n) === 0x20n || (permissions & 0x8n) === 0x8n;
             });
 
-            // 5) حفظ أو تحديث المستخدم
             let user = await User.findOne({ discordId: discordUser.id });
 
             if (!user) {
@@ -151,9 +151,7 @@ module.exports = function startWebServer(client) {
                 await user.save();
             }
 
-            // 6) خزّن session
             req.session.userId = user._id.toString();
-
             res.redirect('/dashboard');
         } catch (error) {
             console.error('Discord callback error:', error.response?.data || error.message);
@@ -161,7 +159,6 @@ module.exports = function startWebServer(client) {
         }
     });
 
-    // Dashboard
     app.get('/dashboard', requireAuth, (req, res) => {
         res.render('dashboard', {
             page: 'dashboard',
@@ -169,7 +166,6 @@ module.exports = function startWebServer(client) {
         });
     });
 
-    // إدارة سيرفر
     app.get('/server/:id', requireAuth, (req, res) => {
         const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
 
@@ -180,7 +176,6 @@ module.exports = function startWebServer(client) {
         res.send(`Managing server: ${guild.name}`);
     });
 
-    // Logout
     app.get('/logout', (req, res) => {
         req.session.destroy(() => {
             res.redirect('/');
