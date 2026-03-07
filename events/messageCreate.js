@@ -2,6 +2,13 @@ const { EmbedBuilder, PermissionsBitField, AttachmentBuilder } = require("discor
 const fs = require("fs");
 const path = require("path");
 
+const User = require("../models/User");
+const {
+  calculateLevel,
+  calculateUsageScore,
+  calculateRankScore
+} = require("../utils/levelSystem");
+
 const lineDB = path.join(__dirname, "../database/lineChannels.json");
 const lineImage = path.join(__dirname, "../assets/line/default.png");
 
@@ -9,6 +16,9 @@ const lineImage = path.join(__dirname, "../assets/line/default.png");
 if (!fs.existsSync(lineDB)) {
   fs.writeFileSync(lineDB, JSON.stringify([]));
 }
+
+// cooldown بسيط للـ XP
+const xpCooldown = new Map();
 
 module.exports = {
   name: "messageCreate",
@@ -19,6 +29,69 @@ module.exports = {
     const content = message.content.toLowerCase();
 
     let activeChannels = JSON.parse(fs.readFileSync(lineDB));
+
+    /* =========================
+       نظام المستخدم / XP / Level / Credits
+    ========================= */
+    let userData = await User.findOne({ discordId: message.author.id });
+
+    if (!userData) {
+      userData = await User.create({
+        discordId: message.author.id,
+        username: message.author.username,
+        avatar: message.author.avatar || null
+      });
+    } else {
+      userData.username = message.author.username;
+      userData.avatar = message.author.avatar || null;
+    }
+
+    // زيادة عدد الرسائل دائمًا
+    userData.messageCount += 1;
+
+    // XP cooldown كل 15 ثانية
+    const cooldownKey = `${message.guild.id}-${message.author.id}`;
+    const now = Date.now();
+    const lastXpTime = xpCooldown.get(cooldownKey) || 0;
+
+    if (now - lastXpTime >= 15000) {
+      const randomXp = Math.floor(Math.random() * 11) + 15; // من 15 إلى 25
+      const randomCredits = Math.floor(Math.random() * 3) + 1; // من 1 إلى 3
+
+      userData.xp += randomXp;
+      userData.credits += randomCredits;
+
+      xpCooldown.set(cooldownKey, now);
+    }
+
+    // تحديث usageScore و rankScore
+    userData.usageScore = calculateUsageScore(userData);
+
+    const oldLevel = userData.level;
+    const newLevel = calculateLevel(userData.xp);
+    userData.level = newLevel;
+
+    userData.rankScore = calculateRankScore(userData);
+
+    await userData.save();
+
+    // رسالة level up
+    if (newLevel > oldLevel) {
+      try {
+        const levelEmbed = new EmbedBuilder()
+          .setColor(0xff1e2e)
+          .setTitle("🎉 Level Up!")
+          .setDescription(
+            `Congrats ${message.author}, you reached **Level ${newLevel}**`
+          )
+          .setFooter({ text: "DealerX Level System" })
+          .setTimestamp();
+
+        await message.channel.send({ embeds: [levelEmbed] });
+      } catch (err) {
+        console.log("Level up message failed:", err);
+      }
+    }
 
     /* =========================
        أمر ping
