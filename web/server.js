@@ -2,15 +2,18 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const mongoose = require('mongoose');
+const axios = require('axios');
 
 module.exports = function startWebServer(client) {
     const app = express();
     const PORT = process.env.PORT || 3000;
 
+    // MongoDB
     mongoose.connect(process.env.MONGODB_URI)
         .then(() => console.log('MongoDB connected'))
         .catch(err => console.error('MongoDB error:', err));
 
+    // User Schema
     const userSchema = new mongoose.Schema({
         discordId: { type: String, required: true, unique: true },
         username: String,
@@ -23,6 +26,7 @@ module.exports = function startWebServer(client) {
 
     const User = mongoose.models.User || mongoose.model('User', userSchema);
 
+    // App config
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'ejs');
 
@@ -35,10 +39,12 @@ module.exports = function startWebServer(client) {
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: false
+            secure: false,
+            maxAge: 1000 * 60 * 60 * 24 * 7
         }
     }));
 
+    // تحميل المستخدم من session
     app.use(async (req, res, next) => {
         try {
             if (req.session.userId) {
@@ -60,53 +66,102 @@ module.exports = function startWebServer(client) {
         next();
     }
 
+    // الصفحة الرئيسية
     app.get('/', (req, res) => {
         res.render('home', { page: 'home' });
     });
 
+    // Discord OAuth login
     app.get('/login', (req, res) => {
-        return res.redirect('/mock-login');
+        const redirect = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&scope=identify%20guilds`;
+        res.redirect(redirect);
     });
 
-    app.get('/mock-login', async (req, res) => {
-        try {
-            const fakeDiscordUser = {
-                discordId: '123456789012345678',
-                username: 'Abdala',
-                avatar: null,
-                accessToken: 'demo_access_token',
-                refreshToken: 'demo_refresh_token',
-                guilds: [
-                    { id: '111', name: 'DealerX Community', icon: null },
-                    { id: '222', name: 'Shop System', icon: null }
-                ]
-            };
+    // Discord callback
+    app.get('/callback', async (req, res) => {
+        const code = req.query.code;
 
-            let user = await User.findOne({ discordId: fakeDiscordUser.discordId });
+        if (!code) {
+            return res.status(400).send('No code provided');
+        }
+
+        try {
+            // 1) هات access token
+            const tokenResponse = await axios.post(
+                'https://discord.com/api/oauth2/token',
+                new URLSearchParams({
+                    client_id: process.env.DISCORD_CLIENT_ID,
+                    client_secret: process.env.DISCORD_CLIENT_SECRET,
+                    grant_type: 'authorization_code',
+                    code,
+                    redirect_uri: process.env.DISCORD_REDIRECT_URI
+                }).toString(),
+                {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }
+            );
+
+            const { access_token, refresh_token } = tokenResponse.data;
+
+            // 2) هات بيانات المستخدم
+            const userResponse = await axios.get('https://discord.com/api/users/@me', {
+                headers: {
+                    Authorization: `Bearer ${access_token}`
+                }
+            });
+
+            // 3) هات السيرفرات
+            const guildsResponse = await axios.get('https://discord.com/api/users/@me/guilds', {
+                headers: {
+                    Authorization: `Bearer ${access_token}`
+                }
+            });
+
+            const discordUser = userResponse.data;
+            const guilds = guildsResponse.data || [];
+
+            // 4) فلترة السيرفرات اللي يقدر يديرها لو حابب
+            const manageableGuilds = guilds.filter(guild => {
+                const permissions = BigInt(guild.permissions);
+                return (permissions & 0x20n) === 0x20n || (permissions & 0x8n) === 0x8n;
+            });
+
+            // 5) حفظ أو تحديث المستخدم
+            let user = await User.findOne({ discordId: discordUser.id });
 
             if (!user) {
                 user = await User.create({
-                    ...fakeDiscordUser,
+                    discordId: discordUser.id,
+                    username: discordUser.username,
+                    avatar: discordUser.avatar,
+                    accessToken: access_token,
+                    refreshToken: refresh_token,
+                    guilds: manageableGuilds,
                     lastLogin: new Date()
                 });
             } else {
-                user.username = fakeDiscordUser.username;
-                user.avatar = fakeDiscordUser.avatar;
-                user.accessToken = fakeDiscordUser.accessToken;
-                user.refreshToken = fakeDiscordUser.refreshToken;
-                user.guilds = fakeDiscordUser.guilds;
+                user.username = discordUser.username;
+                user.avatar = discordUser.avatar;
+                user.accessToken = access_token;
+                user.refreshToken = refresh_token;
+                user.guilds = manageableGuilds;
                 user.lastLogin = new Date();
                 await user.save();
             }
 
+            // 6) خزّن session
             req.session.userId = user._id.toString();
+
             res.redirect('/dashboard');
         } catch (error) {
-            console.error('Mock login error:', error);
-            res.status(500).send('Login failed');
+            console.error('Discord callback error:', error.response?.data || error.message);
+            res.status(500).send('OAuth failed');
         }
     });
 
+    // Dashboard
     app.get('/dashboard', requireAuth, (req, res) => {
         res.render('dashboard', {
             page: 'dashboard',
@@ -114,6 +169,7 @@ module.exports = function startWebServer(client) {
         });
     });
 
+    // إدارة سيرفر
     app.get('/server/:id', requireAuth, (req, res) => {
         const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
 
@@ -124,6 +180,7 @@ module.exports = function startWebServer(client) {
         res.send(`Managing server: ${guild.name}`);
     });
 
+    // Logout
     app.get('/logout', (req, res) => {
         req.session.destroy(() => {
             res.redirect('/');
