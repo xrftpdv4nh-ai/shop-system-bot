@@ -27,11 +27,10 @@ module.exports = {
     if (message.author.bot) return;
 
     const content = message.content.toLowerCase();
-
     let activeChannels = JSON.parse(fs.readFileSync(lineDB));
 
     /* =========================
-       نظام المستخدم / XP / Level / Credits
+       نظام المستخدم / Message XP / Credits
     ========================= */
     let userData = await User.findOne({ discordId: message.author.id });
 
@@ -55,22 +54,22 @@ module.exports = {
     const lastXpTime = xpCooldown.get(cooldownKey) || 0;
 
     if (now - lastXpTime >= 15000) {
-      const randomXp = Math.floor(Math.random() * 11) + 15; // من 15 إلى 25
-      const randomCredits = Math.floor(Math.random() * 3) + 1; // من 1 إلى 3
+      const randomXp = Math.floor(Math.random() * 11) + 15; // 15 -> 25
+      const randomCredits = Math.floor(Math.random() * 3) + 1; // 1 -> 3
 
-      userData.xp += randomXp;
+      userData.messageXp += randomXp;
       userData.credits += randomCredits;
 
       xpCooldown.set(cooldownKey, now);
     }
 
-    // تحديث usageScore و rankScore
+    // تحديث level الرسائل
+    const oldLevel = userData.messageLevel;
+    const newLevel = calculateLevel(userData.messageXp);
+    userData.messageLevel = newLevel;
+
+    // تحديث usage و rank
     userData.usageScore = calculateUsageScore(userData);
-
-    const oldLevel = userData.level;
-    const newLevel = calculateLevel(userData.xp);
-    userData.level = newLevel;
-
     userData.rankScore = calculateRankScore(userData);
 
     await userData.save();
@@ -80,9 +79,9 @@ module.exports = {
       try {
         const levelEmbed = new EmbedBuilder()
           .setColor(0xff1e2e)
-          .setTitle("🎉 Level Up!")
+          .setTitle("🎉 Message Level Up!")
           .setDescription(
-            `Congrats ${message.author}, you reached **Level ${newLevel}**`
+            `Congrats ${message.author}, you reached **Message Level ${newLevel}**`
           )
           .setFooter({ text: "DealerX Level System" })
           .setTimestamp();
