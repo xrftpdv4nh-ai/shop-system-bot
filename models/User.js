@@ -7,20 +7,42 @@ const userSchema = new mongoose.Schema({
     unique: true
   },
 
-  username: String,
-  avatar: String,
+  username: {
+    type: String,
+    default: ""
+  },
+
+  avatar: {
+    type: String,
+    default: null
+  },
+
+  accessToken: {
+    type: String,
+    default: null
+  },
+
+  refreshToken: {
+    type: String,
+    default: null
+  },
+
+  guilds: {
+    type: Array,
+    default: []
+  },
 
   credits: {
     type: Number,
     default: 0
   },
 
-  xp: {
+  messageXp: {
     type: Number,
     default: 0
   },
 
-  level: {
+  messageLevel: {
     type: Number,
     default: 1
   },
@@ -28,6 +50,16 @@ const userSchema = new mongoose.Schema({
   messageCount: {
     type: Number,
     default: 0
+  },
+
+  voiceXp: {
+    type: Number,
+    default: 0
+  },
+
+  voiceLevel: {
+    type: Number,
+    default: 1
   },
 
   voiceMinutes: {
@@ -53,8 +85,14 @@ const userSchema = new mongoose.Schema({
   lastVoiceJoin: {
     type: Date,
     default: null
+  },
+
+  lastLogin: {
+    type: Date,
+    default: Date.now
   }
+}, {
+  timestamps: true
+});
 
-}, { timestamps: true });
-
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);
