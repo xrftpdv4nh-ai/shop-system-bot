@@ -7,6 +7,12 @@ const {
   ActionRowBuilder
 } = require("discord.js");
 
+const User = require("../models/User");
+const {
+  calculateUsageScore,
+  calculateRankScore
+} = require("../utils/levelSystem");
+
 function encryptText(text) {
   return Buffer.from(text, "utf-8").toString("base64");
 }
@@ -23,6 +29,25 @@ module.exports = {
       if (!command) return;
 
       try {
+        let userData = await User.findOne({ discordId: interaction.user.id });
+
+        if (!userData) {
+          userData = await User.create({
+            discordId: interaction.user.id,
+            username: interaction.user.username,
+            avatar: interaction.user.avatar || null
+          });
+        } else {
+          userData.username = interaction.user.username;
+          userData.avatar = interaction.user.avatar || null;
+        }
+
+        userData.commandUsage += 1;
+        userData.usageScore = calculateUsageScore(userData);
+        userData.rankScore = calculateRankScore(userData);
+
+        await userData.save();
+
         await command.execute(interaction);
       } catch (error) {
         console.error(error);
