@@ -30,7 +30,7 @@ module.exports = {
     }
 
     await interaction.reply({
-      content: `💰 | ${target} has **${(userData.credits || 0).toLocaleString()}** credits.`
+      content: `💰 | ${target} has **${(userData.credits || 0).toLocaleString()}** crowns.`
     });
   }
 };
