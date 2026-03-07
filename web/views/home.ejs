@@ -18,13 +18,7 @@
             <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
 
             <div class="user-section">
-                <select id="languageSwitcher" class="lang-select" onchange="setLanguage(this.value)">
-                    <option value="en">English</option>
-                    <option value="ar">العربية</option>
-                </select>
-
                 <span class="username"><%= user.username %></span>
-
                 <img
                     src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
                     class="avatar"
@@ -35,43 +29,139 @@
         </div>
 
         <div class="content">
-            <div class="page-header">
-                <h2>
-                    <span class="lang-text" data-en="Bot Overview" data-ar="نظرة عامة على البوت">Bot Overview</span>
-                    <i class="fa-solid fa-robot" style="color:var(--main-red); font-size:20px;"></i>
-                </h2>
-                <p class="lang-text" data-en="Manage your bot, settings and language from one place" data-ar="تحكم في البوت والإعدادات ولغة الموقع من مكان واحد">
-                    Manage your bot, settings and language from one place
-                </p>
-            </div>
 
-            <div class="grid">
-                <div class="card">
-                    <i class="fa-solid fa-shield-halved fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
-                    <h3 class="lang-text" data-en="Protection System" data-ar="نظام الحماية">Protection System</h3>
-                    <p class="lang-text" data-en="Advanced anti-abuse and moderation tools for your Discord servers." data-ar="أدوات متقدمة للحماية والإشراف على سيرفرات الديسكورد.">
-                        Advanced anti-abuse and moderation tools for your Discord servers.
-                    </p>
+            <div class="home-hero">
+                <div class="home-hero-text">
+                    <h1>Welcome back, <span><%= user.username %></span></h1>
+                    <p>Manage your DealerX progress, track your activity, and claim your rewards from one place.</p>
                 </div>
 
-                <div class="card">
-                    <i class="fa-solid fa-language fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
-                    <h3 class="lang-text" data-en="Website Language" data-ar="لغة الموقع">Website Language</h3>
-                    <p class="lang-text" data-en="Choose English or Arabic and the whole dashboard will switch instantly." data-ar="اختر الإنجليزية أو العربية وسيتحول الموقع بالكامل فورًا.">
-                        Choose English or Arabic and the whole dashboard will switch instantly.
-                    </p>
-                </div>
+                <div class="quick-actions">
+                    <a href="/servers" class="action-btn">
+                        <i class="fa-solid fa-server"></i>
+                        Open Servers
+                    </a>
 
-                <div class="card">
-                    <i class="fa-solid fa-server fa-2x" style="color: var(--main-red); margin-bottom: 15px;"></i>
-                    <h3 class="lang-text" data-en="Manage Servers" data-ar="إدارة السيرفرات">Manage Servers</h3>
-                    <p class="lang-text" data-en="Open the Servers page to manage the available Discord servers." data-ar="افتح صفحة السيرفرات لإدارة السيرفرات المتاحة.">
-                        Open the Servers page to manage the available Discord servers.
-                    </p>
-                    <a href="/servers" class="btn-manage">
-                        <span class="lang-text" data-en="Open Servers" data-ar="فتح السيرفرات">Open Servers</span>
+                    <a href="/daily" class="action-btn">
+                        <i class="fa-solid fa-gift"></i>
+                        Claim Daily
                     </a>
                 </div>
+            </div>
+
+            <div class="overview-grid">
+
+                <div class="overview-card large-card">
+                    <div class="overview-head">
+                        <div class="overview-icon red-icon">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div>
+                            <h3>Crowns</h3>
+                            <p>Your current economy balance</p>
+                        </div>
+                    </div>
+
+                    <div class="overview-value"><%= Number(stats.crowns || 0).toLocaleString() %></div>
+                </div>
+
+                <div class="overview-card">
+                    <div class="overview-head">
+                        <div class="overview-icon gold-icon">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div>
+                            <h3>Global Rank</h3>
+                            <p>Your current position</p>
+                        </div>
+                    </div>
+
+                    <div class="overview-value">#<%= stats.rank || 1 %></div>
+                </div>
+
+                <div class="overview-card">
+                    <div class="overview-head">
+                        <div class="overview-icon blue-icon">
+                            <i class="fa-solid fa-chart-simple"></i>
+                        </div>
+                        <div>
+                            <h3>Usage</h3>
+                            <p>Commands, messages and voice activity</p>
+                        </div>
+                    </div>
+
+                    <div class="overview-value"><%= Number(stats.usage || 0).toLocaleString() %></div>
+                </div>
+
+                <div class="overview-card">
+                    <div class="overview-head">
+                        <div class="overview-icon pink-icon">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <div>
+                            <h3>Message Level</h3>
+                            <p>Text activity progress</p>
+                        </div>
+                    </div>
+
+                    <div class="overview-value"><%= stats.messageLevel || 1 %></div>
+                    <div class="overview-sub">
+                        <span>Messages:</span>
+                        <strong><%= Number(stats.messageCount || 0).toLocaleString() %></strong>
+                    </div>
+                </div>
+
+                <div class="overview-card">
+                    <div class="overview-head">
+                        <div class="overview-icon purple-icon">
+                            <i class="fa-solid fa-microphone-lines"></i>
+                        </div>
+                        <div>
+                            <h3>Voice Level</h3>
+                            <p>Voice activity progress</p>
+                        </div>
+                    </div>
+
+                    <div class="overview-value"><%= stats.voiceLevel || 1 %></div>
+                    <div class="overview-sub">
+                        <span>Voice Minutes:</span>
+                        <strong><%= Number(stats.voiceMinutes || 0).toLocaleString() %></strong>
+                    </div>
+                </div>
+
+                <div class="overview-card bot-card">
+                    <div class="overview-head">
+                        <div class="overview-icon green-icon">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <h3>Bot Overview</h3>
+                            <p>DealerX core information</p>
+                        </div>
+                    </div>
+
+                    <div class="bot-description">
+                        DealerX is a management and activity bot built for moderation, economy, automation, server tools, and a clean user dashboard experience.
+                    </div>
+
+                    <div class="bot-meta">
+                        <div class="bot-meta-item">
+                            <span>Message XP</span>
+                            <strong><%= Number(stats.messageXp || 0).toLocaleString() %></strong>
+                        </div>
+
+                        <div class="bot-meta-item">
+                            <span>Voice XP</span>
+                            <strong><%= Number(stats.voiceXp || 0).toLocaleString() %></strong>
+                        </div>
+
+                        <div class="bot-meta-item">
+                            <span>Commands Used</span>
+                            <strong><%= Number(stats.commandUsage || 0).toLocaleString() %></strong>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -90,34 +180,6 @@
                 main.classList.toggle("collapsed");
             }
         }
-
-        function applyLanguage(lang) {
-            const root = document.getElementById("htmlRoot");
-            const switcher = document.getElementById("languageSwitcher");
-            const elements = document.querySelectorAll(".lang-text");
-
-            if (lang === "ar") {
-                root.setAttribute("lang", "ar");
-                root.setAttribute("dir", "rtl");
-            } else {
-                root.setAttribute("lang", "en");
-                root.setAttribute("dir", "ltr");
-            }
-
-            elements.forEach(el => {
-                el.textContent = el.getAttribute(`data-${lang}`);
-            });
-
-            if (switcher) switcher.value = lang;
-            localStorage.setItem("siteLang", lang);
-        }
-
-        function setLanguage(lang) {
-            applyLanguage(lang);
-        }
-
-        const savedLang = localStorage.getItem("siteLang") || "en";
-        applyLanguage(savedLang);
     </script>
 </body>
 </html>
