@@ -3,7 +3,8 @@ const {
     PermissionFlagsBits,
     AutoModerationRuleTriggerType,
     AutoModerationActionType,
-    AutoModerationEventType
+    AutoModerationRuleEventType,
+    AutoModerationRuleKeywordPresetType
 } = require('discord.js');
 
 module.exports = {
@@ -17,11 +18,11 @@ module.exports = {
             if (!interaction.inGuild() || !interaction.guildId) {
                 return interaction.reply({
                     content: '❌ الأمر ده لازم يتستخدم داخل سيرفر.',
-                    flags: 64
+                    ephemeral: true
                 });
             }
 
-            await interaction.deferReply({ flags: 64 });
+            await interaction.deferReply({ ephemeral: true });
 
             const guild = await interaction.client.guilds.fetch(interaction.guildId);
             if (!guild) {
@@ -34,11 +35,7 @@ module.exports = {
             }
 
             if (!me.permissions.has(PermissionFlagsBits.ManageGuild)) {
-                return interaction.editReply('❌ البوت محتاج صلاحية **Manage Server**.');
-            }
-
-            if (!guild.autoModerationRules) {
-                return interaction.editReply('❌ AutoMod غير مدعوم أو نسخة discord.js عندك قديمة.');
+                return interaction.editReply('❌ البوت محتاج صلاحية Manage Server.');
             }
 
             const existingRules = await guild.autoModerationRules.fetch().catch(() => null);
@@ -51,7 +48,7 @@ module.exports = {
             const rulesToCreate = [
                 {
                     name: 'AM Bad Words 1',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.Keyword,
                     triggerMetadata: {
                         keywordFilter: ['badword1', 'badword2', 'curse1', 'curse2']
@@ -65,7 +62,7 @@ module.exports = {
                 },
                 {
                     name: 'AM Bad Words 2',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.Keyword,
                     triggerMetadata: {
                         keywordFilter: ['insult1', 'insult2', 'toxic1', 'toxic2']
@@ -79,7 +76,7 @@ module.exports = {
                 },
                 {
                     name: 'AM Invite Links',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.Keyword,
                     triggerMetadata: {
                         keywordFilter: ['discord.gg', 'discord.com/invite']
@@ -93,7 +90,7 @@ module.exports = {
                 },
                 {
                     name: 'AM Scam Words',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.Keyword,
                     triggerMetadata: {
                         keywordFilter: ['free nitro', 'claim reward', 'steam gift', 'free gift']
@@ -107,7 +104,7 @@ module.exports = {
                 },
                 {
                     name: 'AM Ad Links',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.Keyword,
                     triggerMetadata: {
                         keywordFilter: ['http://', 'https://', 'www.']
@@ -121,7 +118,7 @@ module.exports = {
                 },
                 {
                     name: 'AM Fake Giveaway',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.Keyword,
                     triggerMetadata: {
                         keywordFilter: ['giveaway winner', 'limited offer', 'urgent claim', 'click here now']
@@ -135,7 +132,7 @@ module.exports = {
                 },
                 {
                     name: 'AM Spam Filter',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.Spam,
                     triggerMetadata: {},
                     actions: [
@@ -147,10 +144,14 @@ module.exports = {
                 },
                 {
                     name: 'AM Preset Filter',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.KeywordPreset,
                     triggerMetadata: {
-                        presets: [1, 2, 3],
+                        presets: [
+                            AutoModerationRuleKeywordPresetType.Profanity,
+                            AutoModerationRuleKeywordPresetType.SexualContent,
+                            AutoModerationRuleKeywordPresetType.Slurs
+                        ],
                         allowList: []
                     },
                     actions: [
@@ -162,7 +163,7 @@ module.exports = {
                 },
                 {
                     name: 'AM Mention Spam',
-                    eventType: AutoModerationEventType.MessageSend,
+                    eventType: AutoModerationRuleEventType.MessageSend,
                     triggerType: AutoModerationRuleTriggerType.MentionSpam,
                     triggerMetadata: {
                         mentionTotalLimit: 5
@@ -171,19 +172,6 @@ module.exports = {
                         {
                             type: AutoModerationActionType.BlockMessage,
                             metadata: { customMessage: '🚫 منشن سبام ممنوع.' }
-                        }
-                    ]
-                },
-                {
-                    name: 'AM Profile Filter',
-                    eventType: AutoModerationEventType.MemberUpdate,
-                    triggerType: AutoModerationRuleTriggerType.MemberProfile,
-                    triggerMetadata: {
-                        keywordFilter: ['badword1', 'fake staff', 'scamlink']
-                    },
-                    actions: [
-                        {
-                            type: AutoModerationActionType.BlockMessage
                         }
                     ]
                 }
@@ -211,13 +199,14 @@ module.exports = {
                 }
             }
 
-            let msg = `✅ تم إنشاء **${created}** Rule\n⏭️ تم تخطي **${skipped}** Rule موجودين بالفعل`;
+            let msg = `✅ تم إنشاء ${created} Rule\n⏭️ تم تخطي ${skipped} Rule موجودين بالفعل`;
 
-            if (errors.length > 0) {
+            if (errors.length) {
                 msg += `\n\n❌ Errors:\n${errors.slice(0, 10).join('\n')}`;
             }
 
             return interaction.editReply(msg);
+
         } catch (err) {
             console.error('setup-automod-max error:', err);
             return interaction.editReply('❌ حصل خطأ أثناء إنشاء AutoMod Rules.');
