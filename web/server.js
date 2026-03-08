@@ -228,12 +228,21 @@ module.exports = function startWebServer(client) {
     });
 
     // Servers page
-    app.get('/servers', requireAuth, (req, res) => {
-        res.render('dashboard', {
-            page: 'servers',
-            guilds: req.user.guilds || []
-        });
+    app.get('/servers', requireAuth, async (req, res) => {
+    const guilds = (req.user.guilds || []).map(guild => {
+        const botInGuild = client.guilds.cache.has(guild.id);
+
+        return {
+            ...guild,
+            botAdded: botInGuild
+        };
     });
+
+    res.render('dashboard', {
+        page: 'servers',
+        guilds
+    });
+});
 
     // Old dashboard route -> redirect to servers
     app.get('/dashboard', requireAuth, (req, res) => {
