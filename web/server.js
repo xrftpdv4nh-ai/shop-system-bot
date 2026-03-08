@@ -32,35 +32,39 @@ module.exports = function startWebServer(client) {
     }));
 
     app.use(async (req, res, next) => {
-    try {
-        if (req.session.userId) {
-            const user = await User.findById(req.session.userId).lean();
-            if (user) req.user = user;
-        }
+        try {
+            if (req.session.userId) {
+                const user = await User.findById(req.session.userId).lean();
+                if (user) req.user = user;
+            }
 
-        if (req.user?.discordId) {
-            const premiumResult = await getPremiumData(req.user.discordId);
-            req.premium = premiumResult;
-            res.locals.premium = premiumResult;
-        } else {
+            if (req.user?.discordId) {
+                const premiumResult = await getPremiumData(req.user.discordId);
+                req.premium = premiumResult;
+                res.locals.premium = premiumResult;
+            } else {
+                req.premium = { isPremium: false, data: null };
+                res.locals.premium = { isPremium: false, data: null };
+            }
+
+            res.locals.user = req.user || null;
+            next();
+        } catch (error) {
+            console.error('Session user load error:', error);
             req.premium = { isPremium: false, data: null };
+            res.locals.user = null;
             res.locals.premium = { isPremium: false, data: null };
+            next();
         }
-
-        res.locals.user = req.user || null;
-        next();
-    } catch (error) {
-        console.error('Session user load error:', error);
-        req.premium = { isPremium: false, data: null };
-        res.locals.user = null;
-        res.locals.premium = { isPremium: false, data: null };
-        next();
-    }
-});
+    });
 
     function requireAuth(req, res, next) {
         if (!req.user) return res.redirect('/login');
         next();
+    }
+
+    function isBotOwner(req) {
+        return req.user?.discordId === process.env.BOT_OWNER_ID;
     }
 
     async function ensureGuildConfig(guild) {
@@ -93,7 +97,10 @@ module.exports = function startWebServer(client) {
             return res.redirect('/home');
         }
 
-        res.render('landing');
+        res.render('landing', {
+            page: 'landing',
+            isBotOwner: false
+        });
     });
 
     // ===============================
@@ -110,29 +117,33 @@ module.exports = function startWebServer(client) {
         const rank = betterUsers + 1;
 
         res.render('home', {
-    page: 'home',
-    premium: req.premium,
-    isBotOwner: req.user.discordId === process.env.BOT_OWNER_ID,
-    stats: {
-        crowns: userData.credits || 0,
-        rank: rank,
-        usage: userData.usageScore || 0,
-        messageLevel: userData.messageLevel || 1,
-        voiceLevel: userData.voiceLevel || 1,
-        messageXp: userData.messageXp || 0,
-        voiceXp: userData.voiceXp || 0,
-        messageCount: userData.messageCount || 0,
-        voiceMinutes: userData.voiceMinutes || 0,
-        commandUsage: userData.commandUsage || 0
-    }
-});
+            page: 'home',
+            premium: req.premium,
+            isBotOwner: isBotOwner(req),
+            stats: {
+                crowns: userData.credits || 0,
+                rank: rank,
+                usage: userData.usageScore || 0,
+                messageLevel: userData.messageLevel || 1,
+                voiceLevel: userData.voiceLevel || 1,
+                messageXp: userData.messageXp || 0,
+                voiceXp: userData.voiceXp || 0,
+                messageCount: userData.messageCount || 0,
+                voiceMinutes: userData.voiceMinutes || 0,
+                commandUsage: userData.commandUsage || 0
+            }
+        });
     });
 
     // ===============================
     // Daily
     // ===============================
     app.get('/daily', requireAuth, (req, res) => {
-        res.render('daily');
+        res.render('daily', {
+            page: 'daily',
+            premium: req.premium,
+            isBotOwner: isBotOwner(req)
+        });
     });
 
     app.post('/api/daily/claim', requireAuth, async (req, res) => {
@@ -280,7 +291,9 @@ module.exports = function startWebServer(client) {
         res.render('dashboard', {
             page: 'servers',
             guilds,
-            botClientId: process.env.CLIENT_ID
+            botClientId: process.env.CLIENT_ID,
+            premium: req.premium,
+            isBotOwner: isBotOwner(req)
         });
     });
 
@@ -311,7 +324,6 @@ module.exports = function startWebServer(client) {
         }
 
         const guildConfig = await ensureGuildConfig(guild);
-
         const guildObj = client.guilds.cache.get(guild.id);
 
         const roles = guildObj
@@ -331,7 +343,9 @@ module.exports = function startWebServer(client) {
             guild,
             config: guildConfig,
             roles,
-            channels
+            channels,
+            premium: req.premium,
+            isBotOwner: isBotOwner(req)
         });
     });
 
@@ -393,14 +407,16 @@ module.exports = function startWebServer(client) {
     });
 
     // ===============================
-// Premium page
-// ===============================
-app.get('/premium', requireAuth, async (req, res) => {
-    res.render('premium', {
-        page: 'premium',
-        premium: req.premium
+    // Premium page
+    // ===============================
+    app.get('/premium', requireAuth, async (req, res) => {
+        res.render('premium', {
+            page: 'premium',
+            premium: req.premium,
+            isBotOwner: isBotOwner(req)
+        });
     });
-});
+
     // ===============================
     // Logout
     // ===============================
