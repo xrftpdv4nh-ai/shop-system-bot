@@ -307,16 +307,22 @@ if (content.startsWith("$add-crowns")) {
   userData.credits += amount;
   await userData.save();
 
-  return message.channel.send(
-`DealerX System
+  const embed = new EmbedBuilder()
+    .setColor("#2ecc71")
+    .setAuthor({
+      name: "DealerX System"
+    })
+    .setThumbnail(target.displayAvatarURL({ dynamic: true }))
+    .setDescription(`Crowns Added`)
+    .addFields(
+      { name: "User", value: `${target}`, inline: true },
+      { name: "Amount", value: `${amount.toLocaleString()}`, inline: true },
+      { name: "New Balance", value: `${userData.credits.toLocaleString()}`, inline: false }
+    )
+    .setTimestamp();
 
-Crowns Added
-User: ${target}
-Amount: ${amount.toLocaleString()}
-New Balance: ${userData.credits.toLocaleString()}`
-  );
+  return message.channel.send({ embeds: [embed] });
 }
-
 
 
 /* =========================
@@ -351,14 +357,21 @@ if (content.startsWith("$remove-crowns")) {
 
   await userData.save();
 
-  return message.channel.send(
-`DealerX System
+  const embed = new EmbedBuilder()
+    .setColor("#e74c3c")
+    .setAuthor({
+      name: "DealerX System"
+    })
+    .setThumbnail(target.displayAvatarURL({ dynamic: true }))
+    .setDescription(`Crowns Removed`)
+    .addFields(
+      { name: "User", value: `${target}`, inline: true },
+      { name: "Amount", value: `${amount.toLocaleString()}`, inline: true },
+      { name: "New Balance", value: `${userData.credits.toLocaleString()}`, inline: false }
+    )
+    .setTimestamp();
 
-Crowns Removed
-User: ${target}
-Amount: ${amount.toLocaleString()}
-New Balance: ${userData.credits.toLocaleString()}`
-  );
+  return message.channel.send({ embeds: [embed] });
 }
     /* =========================
        ❌ إلغاء الخط
