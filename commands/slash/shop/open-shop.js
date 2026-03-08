@@ -80,15 +80,17 @@ module.exports = {
 
       /* =========================
          🔒 Limit للأستاندر
-         الأستاندر: 5 شوبات فقط
+         الأستاندر: 5 شوبات لكل إداري
          البريميام: بدون حد
       ========================= */
       if (!isPremium) {
-        const totalOpenShops = Object.keys(shops).length;
+        const openedByThisAdmin = Object.values(shops).filter(
+          shop => shop.createdBy === interaction.user.id
+        ).length;
 
-        if (totalOpenShops >= 5) {
+        if (openedByThisAdmin >= 5) {
           return interaction.reply({
-            content: "❌ لقد وصلت للحد الأقصى المجاني للشوبات المفتوحة (5). تحتاج Premium لفتح شوبات بدون حد.",
+            content: "❌ لقد وصلت للحد الأقصى المجاني لفتح الشوبات (5). تحتاج Premium لفتح شوبات بدون حد.",
             ephemeral: true
           });
         }
@@ -169,6 +171,7 @@ module.exports = {
       ========================= */
       shops[channel.id] = {
         ownerId: user.id,
+        createdBy: interaction.user.id,
         endsAt,
         warnings: 0
       };
@@ -178,10 +181,14 @@ module.exports = {
       /* =========================
          ✅ رد نهائي
       ========================= */
+      const openedByThisAdminAfterCreate = Object.values(shops).filter(
+        shop => shop.createdBy === interaction.user.id
+      ).length;
+
       await interaction.reply({
         content: isPremium
           ? `✅ تم فتح شوب لـ ${user.tag}`
-          : `✅ تم فتح شوب لـ ${user.tag} | المتبقي في الخطة المجانية: ${Math.max(0, 5 - Object.keys(shops).length)}`,
+          : `✅ تم فتح شوب لـ ${user.tag} | المتبقي لك في الخطة المجانية: ${Math.max(0, 5 - openedByThisAdminAfterCreate)}`,
         ephemeral: true
       });
 
