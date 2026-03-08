@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealerX | Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <%- include('sidebar', { page: 'owner' }) %>
+
+    <div class="main" id="main">
+        <div class="navbar dashboard-navbar">
+            <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+
+            <div class="user-section">
+                <span class="username"><%= user.username %></span>
+                <img
+                    src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                    class="avatar"
+                    alt="avatar"
+                    onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+                >
+            </div>
+        </div>
+
+        <div class="content">
+            <section class="dx-hero">
+                <div class="dx-hero-left">
+                    <div class="dx-badge">
+                        <i class="fa-solid fa-user-shield"></i>
+                        DealerX Owner Panel
+                    </div>
+
+                    <h1 class="dx-hero-title">
+                        Welcome, <span>Admin</span>
+                    </h1>
+
+                    <p class="dx-hero-text">
+                        Manage global bot insights, monitor usage, and prepare premium and system controls from one private owner dashboard.
+                    </p>
+
+                    <div class="dx-actions">
+                        <a href="/home" class="dx-btn dx-btn-primary">
+                            <i class="fa-solid fa-house"></i>
+                            Home
+                        </a>
+
+                        <a href="/premium" class="dx-btn dx-btn-secondary">
+                            <i class="fa-solid fa-crown"></i>
+                            Premium
+                        </a>
+                    </div>
+                </div>
+
+                <div class="dx-hero-right">
+                    <div class="dx-profile-card">
+                        <img
+                            src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                            alt="avatar"
+                            class="dx-profile-avatar"
+                            onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+                        >
+                        <div class="dx-profile-meta">
+                            <h3><%= user.username %></h3>
+                            <p>Bot Owner Access</p>
+                            <div style="margin-top:10px;">
+                                <span style="display:inline-block; background:rgba(255,30,46,0.12); border:1px solid rgba(255,30,46,0.20); color:#ffb8be; padding:8px 12px; border-radius:999px; font-size:12px; font-weight:800;">
+                                    Full Access
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dx-stats-grid">
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon crown">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Total Users</h3>
+                        <p>Registered users in database</p>
+                        <div class="dx-stat-value"><%= Number(ownerStats.totalUsers || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon usage">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Dashboard Users</h3>
+                        <p>Users who logged into dashboard</p>
+                        <div class="dx-stat-value"><%= Number(ownerStats.totalDashboardUsers || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon rank">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Premium Users</h3>
+                        <p>Currently active subscriptions</p>
+                        <div class="dx-stat-value"><%= Number(ownerStats.totalPremiumUsers || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon msg">
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Bot Servers</h3>
+                        <p>Servers where the bot is present</p>
+                        <div class="dx-stat-value"><%= Number(ownerStats.totalBotServers || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon voice">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Dashboard Servers</h3>
+                        <p>Manageable servers stored by users</p>
+                        <div class="dx-stat-value"><%= Number(ownerStats.totalManageableServers || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+
+                <div class="dx-stat-card">
+                    <div class="dx-stat-icon usage">
+                        <i class="fa-solid fa-terminal"></i>
+                    </div>
+                    <div class="dx-stat-content">
+                        <h3>Total Commands</h3>
+                        <p>All tracked command usage</p>
+                        <div class="dx-stat-value"><%= Number(ownerStats.totalCommandsUsed || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dx-bottom-grid">
+                <div class="dx-panel">
+                    <div class="dx-panel-head">
+                        <h3><i class="fa-solid fa-chart-line"></i> Global Economy</h3>
+                        <span>Live total</span>
+                    </div>
+
+                    <div class="dx-info-grid">
+                        <div class="dx-info-box">
+                            <span>Total Crowns</span>
+                            <strong><%= Number(ownerStats.totalCrowns || 0).toLocaleString() %></strong>
+                        </div>
+
+                        <div class="dx-info-box">
+                            <span>Premium Status</span>
+                            <strong><%= ownerStats.totalPremiumUsers > 0 ? 'Active' : 'No Active Users' %></strong>
+                        </div>
+                    </div>
+
+                    <p class="dx-overview-text" style="margin-top:18px;">
+                        This section gives you a quick overview of the total crowns and activity stored across the full DealerX system.
+                    </p>
+                </div>
+
+                <div class="dx-panel">
+                    <div class="dx-panel-head">
+                        <h3><i class="fa-solid fa-screwdriver-wrench"></i> Owner Tools</h3>
+                        <span>Coming next</span>
+                    </div>
+
+                    <div class="dx-info-grid">
+                        <div class="dx-info-box">
+                            <span>Premium Management</span>
+                            <strong>Next Step</strong>
+                        </div>
+
+                        <div class="dx-info-box">
+                            <span>System Toggles</span>
+                            <strong>Next Step</strong>
+                        </div>
+
+                        <div class="dx-info-box">
+                            <span>Shop Statistics</span>
+                            <strong>Next Step</strong>
+                        </div>
+
+                        <div class="dx-info-box">
+                            <span>Admin Commands</span>
+                            <strong>Next Step</strong>
+                        </div>
+                    </div>
+
+                    <p class="dx-overview-text" style="margin-top:18px;">
+                        This page is now ready. The next upgrades will add premium control, system enable/disable, shop statistics, and private owner tools.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main");
+            const overlay = document.getElementById("overlay");
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("collapsed");
+                main.classList.toggle("collapsed");
+            }
+        }
+    </script>
+</body>
+</html>
