@@ -112,19 +112,20 @@ module.exports = function startWebServer(client) {
         res.render('home', {
     page: 'home',
     premium: req.premium,
+    isBotOwner: req.user.discordId === process.env.BOT_OWNER_ID,
     stats: {
-                crowns: userData.credits || 0,
-                rank,
-                usage: userData.usageScore || 0,
-                messageLevel: userData.messageLevel || 1,
-                voiceLevel: userData.voiceLevel || 1,
-                messageXp: userData.messageXp || 0,
-                voiceXp: userData.voiceXp || 0,
-                messageCount: userData.messageCount || 0,
-                voiceMinutes: userData.voiceMinutes || 0,
-                commandUsage: userData.commandUsage || 0
-            }
-        });
+        crowns: userData.credits || 0,
+        rank: rank,
+        usage: userData.usageScore || 0,
+        messageLevel: userData.messageLevel || 1,
+        voiceLevel: userData.voiceLevel || 1,
+        messageXp: userData.messageXp || 0,
+        voiceXp: userData.voiceXp || 0,
+        messageCount: userData.messageCount || 0,
+        voiceMinutes: userData.voiceMinutes || 0,
+        commandUsage: userData.commandUsage || 0
+    }
+});
     });
 
     // ===============================
