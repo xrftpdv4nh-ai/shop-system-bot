@@ -264,11 +264,82 @@ module.exports = function startWebServer(client) {
             await guildConfig.save();
         }
 
+        const guildObj = client.guilds.cache.get(guild.id);
+        const roles = guildObj
+            ? guildObj.roles.cache
+                .filter(r => r.name !== '@everyone')
+                .map(r => ({ id: r.id, name: r.name }))
+            : [];
+
+        const channels = guildObj
+            ? guildObj.channels.cache
+                .filter(c => c.type === 0)
+                .map(c => ({ id: c.id, name: c.name }))
+            : [];
+
         res.render('server', {
             page: 'servers',
             guild,
-            config: guildConfig
+            config: guildConfig,
+            roles,
+            channels
         });
+    });
+
+    // ===============================
+    // Save single command settings
+    // ===============================
+    app.post('/server/:id/settings/:command', requireAuth, async (req, res) => {
+        const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
+
+        if (!guild) {
+            return res.status(404).send('Server not found');
+        }
+
+        const commandName = req.params.command;
+        const allowedCommands = ['profile', 'crowns', 'daily', 'top', 'leaderboard'];
+
+        if (!allowedCommands.includes(commandName)) {
+            return res.status(400).send('Invalid command');
+        }
+
+        let guildConfig = await GuildConfig.findOne({ guildId: guild.id });
+
+        if (!guildConfig) {
+            guildConfig = await GuildConfig.create({
+                guildId: guild.id,
+                guildName: guild.name,
+                guildIcon: guild.icon || null
+            });
+        }
+
+        const selectedRoles = Array.isArray(req.body.roles)
+            ? req.body.roles
+            : req.body.roles
+                ? [req.body.roles]
+                : [];
+
+        const selectedChannels = Array.isArray(req.body.channels)
+            ? req.body.channels
+            : req.body.channels
+                ? [req.body.channels]
+                : [];
+
+        const alias = String(req.body.alias || '').trim().toLowerCase();
+
+        guildConfig.commandSettings[commandName] = {
+            disabled: req.body.disabled === 'on',
+            roles: selectedRoles,
+            channels: selectedChannels,
+            alias
+        };
+
+        guildConfig.guildName = guild.name;
+        guildConfig.guildIcon = guild.icon || null;
+
+        await guildConfig.save();
+
+        res.redirect(`/server/${guild.id}`);
     });
 
     // ===============================
