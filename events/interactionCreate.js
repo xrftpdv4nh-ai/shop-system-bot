@@ -8,6 +8,7 @@ const {
 } = require("discord.js");
 
 const User = require("../models/User");
+const GuildConfig = require("../models/GuildConfig");
 const {
   calculateUsageScore,
   calculateRankScore
@@ -29,6 +30,76 @@ module.exports = {
       if (!command) return;
 
       try {
+        /* =========================
+           Load guild config
+        ========================= */
+        let guildConfig = null;
+
+        if (interaction.guild) {
+          guildConfig = await GuildConfig.findOne({ guildId: interaction.guild.id });
+        }
+
+        /* =========================
+           Check disabled commands
+        ========================= */
+        if (
+          guildConfig &&
+          Array.isArray(guildConfig.disabledCommands) &&
+          guildConfig.disabledCommands.includes(interaction.commandName)
+        ) {
+          return interaction.reply({
+            content: `❌ | The \`/${interaction.commandName}\` command is disabled in this server.`,
+            ephemeral: true
+          });
+        }
+
+        /* =========================
+           Check allowed roles
+        ========================= */
+        if (guildConfig && guildConfig.commandRoles) {
+          const allowedRoles = guildConfig.commandRoles.get
+            ? guildConfig.commandRoles.get(interaction.commandName)
+            : guildConfig.commandRoles[interaction.commandName];
+
+          if (Array.isArray(allowedRoles) && allowedRoles.length > 0) {
+            const memberRoleIds = interaction.member?.roles?.cache
+              ? [...interaction.member.roles.cache.keys()]
+              : [];
+
+            const hasAllowedRole = allowedRoles.some(roleId =>
+              memberRoleIds.includes(roleId)
+            );
+
+            if (!hasAllowedRole) {
+              return interaction.reply({
+                content: `❌ | You do not have permission to use \`/${interaction.commandName}\` in this server.`,
+                ephemeral: true
+              });
+            }
+          }
+        }
+
+        /* =========================
+           Check allowed channels
+        ========================= */
+        if (guildConfig && guildConfig.commandChannels) {
+          const allowedChannels = guildConfig.commandChannels.get
+            ? guildConfig.commandChannels.get(interaction.commandName)
+            : guildConfig.commandChannels[interaction.commandName];
+
+          if (Array.isArray(allowedChannels) && allowedChannels.length > 0) {
+            if (!allowedChannels.includes(interaction.channelId)) {
+              return interaction.reply({
+                content: `❌ | You cannot use \`/${interaction.commandName}\` in this channel.`,
+                ephemeral: true
+              });
+            }
+          }
+        }
+
+        /* =========================
+           User system
+        ========================= */
         let userData = await User.findOne({ discordId: interaction.user.id });
 
         if (!userData) {
