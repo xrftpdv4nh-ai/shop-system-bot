@@ -149,11 +149,23 @@ module.exports = {
           await userData.save();
 
           // تنفيذ alias بحسب اسم الأمر
-          if (matchedCommand === "crowns") {
-            return message.reply(
-              `👑 | ${message.author} has **${(userData.credits || 0).toLocaleString()}** crowns.`
-            );
-          }
+         if (matchedCommand === "crowns") {
+  const mentionedUser = message.mentions.users.first() || message.author;
+
+  let targetData = await User.findOne({ discordId: mentionedUser.id });
+
+  if (!targetData) {
+    targetData = await User.create({
+      discordId: mentionedUser.id,
+      username: mentionedUser.username,
+      avatar: mentionedUser.avatar || null
+    });
+  }
+
+  return message.reply(
+    `👑 | ${mentionedUser} has **${(targetData.credits || 0).toLocaleString()}** crowns.`
+  );
+}
 
           if (matchedCommand === "daily") {
             const cooldown = 24 * 60 * 60 * 1000;
