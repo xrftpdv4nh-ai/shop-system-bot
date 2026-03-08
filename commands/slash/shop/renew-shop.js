@@ -2,6 +2,8 @@ const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("disc
 const fs = require("fs");
 const path = require("path");
 
+const { getPremiumData } = require("../../../utils/premiumCheck");
+
 const shopsFile = path.join(__dirname, "../../../database/shops.json");
 
 module.exports = {
@@ -21,12 +23,31 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   async execute(interaction) {
+    const premiumResult = await getPremiumData(interaction.user.id);
+    if (!premiumResult.isPremium) {
+      return interaction.reply({
+        content: "❌ هذا الأمر متاح لمستخدمي Premium فقط.",
+        ephemeral: true
+      });
+    }
+
     const channel = interaction.options.getChannel("shop");
     const days = interaction.options.getInteger("days");
 
-    const shops = JSON.parse(fs.readFileSync(shopsFile));
+    if (!fs.existsSync(shopsFile)) {
+      return interaction.reply({
+        content: "❌ لا توجد شوبات مسجلة",
+        ephemeral: true
+      });
+    }
+
+    const shops = JSON.parse(fs.readFileSync(shopsFile, "utf8"));
+
     if (!shops[channel.id]) {
-      return interaction.reply({ content: "❌ الروم مش شوب", ephemeral: true });
+      return interaction.reply({
+        content: "❌ الروم مش شوب",
+        ephemeral: true
+      });
     }
 
     shops[channel.id].endsAt += days * 24 * 60 * 60 * 1000;
@@ -36,10 +57,14 @@ module.exports = {
       .setTitle("🔁 تم تجديد الشوب")
       .setColor(0x2b2d31)
       .setDescription(
-        `⏳ **الانتهاء الجديد:** <t:${Math.floor(shops[channel.id].endsAt/1000)}>`
+        `⏳ **الانتهاء الجديد:** <t:${Math.floor(shops[channel.id].endsAt / 1000)}>`
       );
 
     await channel.send({ embeds: [embed] });
-    interaction.reply({ content: "✅ تم التجديد", ephemeral: true });
+
+    return interaction.reply({
+      content: "✅ تم التجديد",
+      ephemeral: true
+    });
   }
 };
