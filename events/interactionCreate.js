@@ -33,26 +33,55 @@ module.exports = {
         /* =========================
            Load guild config
         ========================= */
-        let guildConfig = null;
+                let guildConfig = null;
+        let commandConfig = null;
 
         if (interaction.guild) {
           guildConfig = await GuildConfig.findOne({ guildId: interaction.guild.id });
+          commandConfig = guildConfig?.commandSettings?.[interaction.commandName] || null;
         }
 
         /* =========================
            Check disabled commands
         ========================= */
-        if (
-          guildConfig &&
-          Array.isArray(guildConfig.disabledCommands) &&
-          guildConfig.disabledCommands.includes(interaction.commandName)
-        ) {
+        if (commandConfig?.disabled) {
           return interaction.reply({
             content: `❌ | The \`/${interaction.commandName}\` command is disabled in this server.`,
             ephemeral: true
           });
         }
 
+        /* =========================
+           Check allowed roles
+        ========================= */
+        if (commandConfig?.roles && commandConfig.roles.length > 0) {
+          const memberRoleIds = interaction.member?.roles?.cache
+            ? [...interaction.member.roles.cache.keys()]
+            : [];
+
+          const hasAllowedRole = commandConfig.roles.some(roleId =>
+            memberRoleIds.includes(roleId)
+          );
+
+          if (!hasAllowedRole) {
+            return interaction.reply({
+              content: `❌ | You do not have permission to use \`/${interaction.commandName}\` in this server.`,
+              ephemeral: true
+            });
+          }
+        }
+
+        /* =========================
+           Check allowed channels
+        ========================= */
+        if (commandConfig?.channels && commandConfig.channels.length > 0) {
+          if (!commandConfig.channels.includes(interaction.channelId)) {
+            return interaction.reply({
+              content: `❌ | You cannot use \`/${interaction.commandName}\` in this channel.`,
+              ephemeral: true
+            });
+          }
+        }
         /* =========================
            Check allowed roles
         ========================= */
