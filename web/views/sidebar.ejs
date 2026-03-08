@@ -16,6 +16,13 @@
         <span class="lang-text" data-en="Premium" data-ar="البريميام">Premium</span>
     </a>
 
+    <% if (typeof isBotOwner !== "undefined" && isBotOwner) { %>
+        <a href="/owner" class="<%= page === 'owner' ? 'active' : '' %>">
+            <i class="fa-solid fa-user-shield"></i>
+            <span class="lang-text" data-en="Admin Panel" data-ar="لوحة الإدارة">Admin Panel</span>
+        </a>
+    <% } %>
+
     <a href="#" class="<%= page === 'settings' ? 'active' : '' %>">
         <i class="fa-solid fa-gear"></i>
         <span class="lang-text" data-en="Settings" data-ar="الإعدادات">Settings</span>
