@@ -30,11 +30,10 @@
         <div class="content">
             <div class="page-header">
                 <h2>Manage Server <i class="fa-solid fa-sliders" style="color:var(--main-red); font-size:20px;"></i></h2>
-                <p>Configure command visibility and shortcut messages for this server.</p>
+                <p>Configure each command with its own permissions and alias.</p>
             </div>
 
             <div class="grid">
-                <!-- Server Info -->
                 <div class="card" style="grid-column: span 12; text-align:left; padding:28px;">
                     <div style="display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
                         <% if (guild.icon) { %>
@@ -53,138 +52,93 @@
                             <h3 style="margin:0 0 8px; font-size:28px; color:white; font-weight:900;">
                                 <%= guild.name %>
                             </h3>
-                            <p style="margin:0 0 10px; color:#9f9f9f;">
-                                Guild ID: <%= guild.id %>
-                            </p>
-
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                <span style="background:rgba(255,30,46,0.10); color:#ffb1b7; border:1px solid rgba(255,30,46,0.18); padding:8px 12px; border-radius:999px; font-size:13px; font-weight:700;">
-                                    DealerX Control Panel
-                                </span>
-
-                                <span style="background:rgba(255,255,255,0.04); color:#d3d3d3; border:1px solid rgba(255,255,255,0.06); padding:8px 12px; border-radius:999px; font-size:13px; font-weight:700;">
-                                    Saved Config Ready
-                                </span>
-                            </div>
+                            <p style="margin:0 0 10px; color:#9f9f9f;">Guild ID: <%= guild.id %></p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Settings Form -->
-                <div class="card" style="grid-column: span 12; text-align:left; padding:28px;">
-                    <form action="/server/<%= guild.id %>/settings" method="POST">
-                        
-                        <!-- Commands Section -->
-                        <div style="margin-bottom:30px;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
-                                <h3 style="margin:0; color:white; font-size:28px;">Command Settings</h3>
-                                <span style="color:#9d9d9d; font-size:13px;">Toggle commands on or off for this server</span>
+                <% const commandList = ['profile', 'crowns', 'daily', 'top', 'leaderboard']; %>
+                <% commandList.forEach(cmd => { 
+                    const settings = (config.commandSettings && config.commandSettings[cmd]) || {};
+                %>
+                    <div class="card" style="grid-column: span 12; text-align:left; padding:26px;">
+                        <form action="/server/<%= guild.id %>/settings/<%= cmd %>" method="POST">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+                                <div>
+                                    <h3 style="margin:0 0 8px; color:white; font-size:28px;">/<%= cmd %></h3>
+                                    <p style="margin:0; color:#a8a8a8;">Configure permissions and alias for this command.</p>
+                                </div>
+
+                                <label style="display:flex; align-items:center; gap:10px; color:white; font-weight:700;">
+                                    <input
+                                        type="checkbox"
+                                        name="disabled"
+                                        <%= settings.disabled ? 'checked' : '' %>
+                                        style="width:20px; height:20px;"
+                                    >
+                                    Disable
+                                </label>
                             </div>
 
-                            <p style="color:#a8a8a8; margin:0 0 20px;">
-                                Select which commands should be disabled in this server. These changes are stored and applied from the dashboard.
-                            </p>
-
-                            <% const commandList = ['profile', 'crowns', 'daily', 'top', 'leaderboard']; %>
-
-                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:16px;">
-                                <% commandList.forEach(cmd => { %>
-                                    <div style="background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015)); border:1px solid rgba(255,30,46,0.10); border-radius:18px; padding:18px;">
-                                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-                                            <div>
-                                                <h4 style="margin:0 0 8px; color:white; font-size:22px;">/<%= cmd %></h4>
-                                                <p style="margin:0; color:#9f9f9f; font-size:14px; line-height:1.6;">
-                                                    Disable this command for everyone in this server.
-                                                </p>
-                                            </div>
-
-                                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                            <div style="display:grid; gap:18px;">
+                                <div>
+                                    <label style="display:block; color:white; font-weight:700; margin-bottom:10px;">Allowed Roles</label>
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+                                        <% roles.forEach(role => { %>
+                                            <label style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid rgba(255,30,46,0.08); color:white;">
                                                 <input
                                                     type="checkbox"
-                                                    name="disabledCommands"
-                                                    value="<%= cmd %>"
-                                                    <%= (config.disabledCommands || []).includes(cmd) ? 'checked' : '' %>
-                                                    style="width:20px; height:20px;"
+                                                    name="roles"
+                                                    value="<%= role.id %>"
+                                                    <%= (settings.roles || []).includes(role.id) ? 'checked' : '' %>
                                                 >
+                                                <%= role.name %>
                                             </label>
-                                        </div>
-
-                                        <div style="margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.05); color:#cfcfcf; font-size:13px;">
-                                            Status:
-                                            <% if ((config.disabledCommands || []).includes(cmd)) { %>
-                                                <span style="color:#ff8d95; font-weight:800;">Disabled</span>
-                                            <% } else { %>
-                                                <span style="color:#89ffb0; font-weight:800;">Enabled</span>
-                                            <% } %>
-                                        </div>
+                                        <% }) %>
                                     </div>
-                                <% }) %>
-                            </div>
-                        </div>
+                                </div>
 
-                        <!-- Shortcuts Section -->
-                        <div style="margin-bottom:24px;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
-                                <h3 style="margin:0; color:white; font-size:28px;">Shortcuts</h3>
-                                <span style="color:#9d9d9d; font-size:13px;">Quick saved messages for this server</span>
-                            </div>
-
-                            <p style="color:#a8a8a8; margin:0 0 20px;">
-                                Add quick shortcut messages for this server. You can save multiple shortcut names and their content below.
-                            </p>
-
-                            <div id="shortcut-wrapper">
-                                <% if (config.shortcuts && config.shortcuts.length) { %>
-                                    <% config.shortcuts.forEach(shortcut => { %>
-                                        <div class="shortcut-row" style="display:grid; gap:12px; margin-bottom:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,30,46,0.08); border-radius:18px; padding:16px;">
-                                            <input
-                                                type="text"
-                                                name="shortcutName"
-                                                placeholder="Shortcut name"
-                                                value="<%= shortcut.name %>"
-                                                style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; outline:none;"
-                                            >
-                                            <textarea
-                                                name="shortcutContent"
-                                                placeholder="Shortcut content"
-                                                rows="4"
-                                                style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; resize:vertical; outline:none;"
-                                            ><%= shortcut.content %></textarea>
-                                        </div>
-                                    <% }) %>
-                                <% } else { %>
-                                    <div class="shortcut-row" style="display:grid; gap:12px; margin-bottom:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,30,46,0.08); border-radius:18px; padding:16px;">
-                                        <input
-                                            type="text"
-                                            name="shortcutName"
-                                            placeholder="Shortcut name"
-                                            style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; outline:none;"
-                                        >
-                                        <textarea
-                                            name="shortcutContent"
-                                            placeholder="Shortcut content"
-                                            rows="4"
-                                            style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; resize:vertical; outline:none;"
-                                        ></textarea>
+                                <div>
+                                    <label style="display:block; color:white; font-weight:700; margin-bottom:10px;">Allowed Channels</label>
+                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+                                        <% channels.forEach(channel => { %>
+                                            <label style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid rgba(255,30,46,0.08); color:white;">
+                                                <input
+                                                    type="checkbox"
+                                                    name="channels"
+                                                    value="<%= channel.id %>"
+                                                    <%= (settings.channels || []).includes(channel.id) ? 'checked' : '' %>
+                                                >
+                                                #<%= channel.name %>
+                                            </label>
+                                        <% }) %>
                                     </div>
-                                <% } %>
+                                </div>
+
+                                <div>
+                                    <label style="display:block; color:white; font-weight:700; margin-bottom:10px;">Command Alias</label>
+                                    <input
+                                        type="text"
+                                        name="alias"
+                                        value="<%= settings.alias || '' %>"
+                                        placeholder="Example: p or cr"
+                                        style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; outline:none;"
+                                    >
+                                    <p style="margin:10px 0 0; color:#9f9f9f; font-size:13px;">
+                                        When a user sends this alias in chat, the bot can reply as if the command was used.
+                                    </p>
+                                </div>
                             </div>
 
-                            <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:16px;">
-                                <button type="button" onclick="addShortcut()" class="btn-manage" style="max-width:280px;">
-                                    <i class="fa-solid fa-plus"></i>
-                                    Add Shortcut
-                                </button>
-
-                                <button type="submit" class="btn-manage" style="max-width:320px;">
+                            <div style="margin-top:20px;">
+                                <button type="submit" class="btn-manage" style="max-width:260px;">
                                     <i class="fa-solid fa-floppy-disk"></i>
-                                    Save Settings
+                                    Save /<%= cmd %>
                                 </button>
                             </div>
-                        </div>
-
-                    </form>
-                </div>
+                        </form>
+                    </div>
+                <% }) %>
             </div>
         </div>
     </div>
@@ -202,36 +156,6 @@
                 sidebar.classList.toggle("collapsed");
                 main.classList.toggle("collapsed");
             }
-        }
-
-        function addShortcut() {
-            const wrapper = document.getElementById("shortcut-wrapper");
-            const row = document.createElement("div");
-            row.className = "shortcut-row";
-            row.style.display = "grid";
-            row.style.gap = "12px";
-            row.style.marginBottom = "16px";
-            row.style.background = "rgba(255,255,255,0.02)";
-            row.style.border = "1px solid rgba(255,30,46,0.08)";
-            row.style.borderRadius = "18px";
-            row.style.padding = "16px";
-
-            row.innerHTML = `
-                <input
-                    type="text"
-                    name="shortcutName"
-                    placeholder="Shortcut name"
-                    style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; outline:none;"
-                >
-                <textarea
-                    name="shortcutContent"
-                    placeholder="Shortcut content"
-                    rows="4"
-                    style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; resize:vertical; outline:none;"
-                ></textarea>
-            `;
-
-            wrapper.appendChild(row);
         }
     </script>
 </body>
