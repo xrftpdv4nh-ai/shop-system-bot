@@ -277,6 +277,93 @@ module.exports = {
     }
 
     /* =========================
+   💰 Add Crowns
+   $add-crowns @user amount
+========================= */
+
+if (content.startsWith("$add-crowns")) {
+
+  if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+    return message.reply("❌ هذا الأمر للإدارة فقط.");
+  }
+
+  const target = message.mentions.users.first();
+  const amount = parseInt(message.content.split(" ")[2]);
+
+  if (!target || isNaN(amount) || amount <= 0) {
+    return message.reply("❌ الاستخدام الصحيح:\n`$add-crowns @user amount`");
+  }
+
+  let userData = await User.findOne({ discordId: target.id });
+
+  if (!userData) {
+    userData = await User.create({
+      discordId: target.id,
+      username: target.username,
+      avatar: target.avatar || null
+    });
+  }
+
+  userData.credits += amount;
+  await userData.save();
+
+  const embed = new EmbedBuilder()
+    .setColor("#00ff9d")
+    .setTitle("💰 Crowns Added")
+    .setDescription(`تم إضافة **${amount} Crowns** إلى ${target}`)
+    .addFields({
+      name: "New Balance",
+      value: `${userData.credits} Crowns`
+    });
+
+  return message.channel.send({ embeds: [embed] });
+}
+
+
+/* =========================
+   💸 Remove Crowns
+   $remove-crowns @user amount
+========================= */
+
+if (content.startsWith("$remove-crowns")) {
+
+  if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+    return message.reply("❌ هذا الأمر للإدارة فقط.");
+  }
+
+  const target = message.mentions.users.first();
+  const amount = parseInt(message.content.split(" ")[2]);
+
+  if (!target || isNaN(amount) || amount <= 0) {
+    return message.reply("❌ الاستخدام الصحيح:\n`$remove-crowns @user amount`");
+  }
+
+  let userData = await User.findOne({ discordId: target.id });
+
+  if (!userData) {
+    return message.reply("❌ هذا المستخدم ليس لديه بيانات.");
+  }
+
+  userData.credits -= amount;
+
+  if (userData.credits < 0) {
+    userData.credits = 0;
+  }
+
+  await userData.save();
+
+  const embed = new EmbedBuilder()
+    .setColor("#ff3c3c")
+    .setTitle("💸 Crowns Removed")
+    .setDescription(`تم خصم **${amount} Crowns** من ${target}`)
+    .addFields({
+      name: "New Balance",
+      value: `${userData.credits} Crowns`
+    });
+
+  return message.channel.send({ embeds: [embed] });
+}
+    /* =========================
        ❌ إلغاء الخط
        $الغاء-الخط
     ========================= */
