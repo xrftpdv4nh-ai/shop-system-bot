@@ -7,6 +7,8 @@ const {
 const fs = require("fs");
 const path = require("path");
 
+const { getPremiumData } = require("../../../utils/premiumCheck");
+
 const shopsFile = path.join(__dirname, "../../../database/shops.json");
 const configFile = path.join(__dirname, "../../../database/shopConfig.json");
 
@@ -25,6 +27,9 @@ module.exports = {
   async execute(interaction) {
     try {
       const user = interaction.options.getUser("user");
+
+      const premiumResult = await getPremiumData(interaction.user.id);
+      const isPremium = premiumResult.isPremium;
 
       /* =========================
          🔍 التحقق من الإعدادات
@@ -53,12 +58,15 @@ module.exports = {
       }
 
       /* =========================
-         ⛔ منع تكرار الشوب لنفس الشخص
+         📂 تحميل الشوبات
       ========================= */
       const shops = fs.existsSync(shopsFile)
         ? JSON.parse(fs.readFileSync(shopsFile, "utf8"))
         : {};
 
+      /* =========================
+         ⛔ منع تكرار الشوب لنفس الشخص
+      ========================= */
       const alreadyHasShop = Object.values(shops).some(
         shop => shop.ownerId === user.id
       );
@@ -71,16 +79,30 @@ module.exports = {
       }
 
       /* =========================
+         🔒 Limit للأستاندر
+         الأستاندر: 5 شوبات فقط
+         البريميام: بدون حد
+      ========================= */
+      if (!isPremium) {
+        const totalOpenShops = Object.keys(shops).length;
+
+        if (totalOpenShops >= 5) {
+          return interaction.reply({
+            content: "❌ لقد وصلت للحد الأقصى المجاني للشوبات المفتوحة (5). تحتاج Premium لفتح شوبات بدون حد.",
+            ephemeral: true
+          });
+        }
+      }
+
+      /* =========================
          🕒 حساب مدة الشوب (7 أيام)
       ========================= */
       const startsAt = Date.now();
       const endsAt = startsAt + 7 * 24 * 60 * 60 * 1000;
 
       /* =========================
-         📢 إنشاء روم الشوب (الصلاحيات المعدّلة)
+         📢 إنشاء روم الشوب
       ========================= */
-
-      // نحاول نجيب أي رول عنده Administrator
       const adminRole = interaction.guild.roles.cache.find(
         r => r.permissions.has("Administrator")
       );
@@ -90,7 +112,6 @@ module.exports = {
         type: ChannelType.GuildText,
         parent: category.id,
         permissionOverwrites: [
-          // 👁️ الجميع يشوف فقط
           {
             id: interaction.guild.roles.everyone.id,
             allow: ["ViewChannel"],
@@ -101,8 +122,6 @@ module.exports = {
               "CreatePrivateThreads"
             ]
           },
-
-          // 🛒 صاحب الشوب
           {
             id: user.id,
             allow: [
@@ -114,8 +133,6 @@ module.exports = {
               "ReadMessageHistory"
             ]
           },
-
-          // 🛡️ الإدمن (لو فيه رول Admin)
           ...(adminRole
             ? [{
                 id: adminRole.id,
@@ -162,7 +179,9 @@ module.exports = {
          ✅ رد نهائي
       ========================= */
       await interaction.reply({
-        content: `✅ تم فتح شوب لـ ${user.tag}`,
+        content: isPremium
+          ? `✅ تم فتح شوب لـ ${user.tag}`
+          : `✅ تم فتح شوب لـ ${user.tag} | المتبقي في الخطة المجانية: ${Math.max(0, 5 - Object.keys(shops).length)}`,
         ephemeral: true
       });
 
