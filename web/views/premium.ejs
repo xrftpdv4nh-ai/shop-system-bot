@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealerX | Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <%- include('sidebar', { page: 'premium' }) %>
+
+    <div class="main" id="main">
+        <div class="navbar dashboard-navbar">
+            <i class="fa-solid fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+
+            <div class="user-section">
+                <span class="username"><%= user.username %></span>
+                <img
+                    src="<%= user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png' %>"
+                    class="avatar"
+                    alt="avatar"
+                    onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"
+                >
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="page-header">
+                <h2>Premium <i class="fa-solid fa-crown" style="color:var(--main-red); font-size:20px;"></i></h2>
+                <p>Unlock premium features across all your servers.</p>
+            </div>
+
+            <div class="grid">
+                <div class="card" style="grid-column: span 12; text-align:left; padding:28px;">
+                    <h3 style="margin-top:0; color:white; font-size:30px;">
+                        Current Plan:
+                        <% if (premium?.isPremium) { %>
+                            <span style="color:#ffd166;">Premium</span>
+                        <% } else { %>
+                            <span style="color:#cfcfcf;">Standard</span>
+                        <% } %>
+                    </h3>
+
+                    <% if (premium?.isPremium) { %>
+                        <p style="color:#b5b5b5; line-height:1.8;">
+                            Your premium subscription is active and works across all servers you manage.
+                        </p>
+
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-top:18px;">
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,30,46,0.10); border-radius:16px; padding:16px;">
+                                <span style="display:block; color:#9f9f9f; margin-bottom:8px;">Plan</span>
+                                <strong style="color:white;"><%= premium.data?.plan || 'weekly' %></strong>
+                            </div>
+
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,30,46,0.10); border-radius:16px; padding:16px;">
+                                <span style="display:block; color:#9f9f9f; margin-bottom:8px;">Started At</span>
+                                <strong style="color:white;">
+                                    <%= premium.data?.startsAt ? new Date(premium.data.startsAt).toLocaleDateString() : 'N/A' %>
+                                </strong>
+                            </div>
+
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,30,46,0.10); border-radius:16px; padding:16px;">
+                                <span style="display:block; color:#9f9f9f; margin-bottom:8px;">Expires At</span>
+                                <strong style="color:white;">
+                                    <%= premium.data?.expiresAt ? new Date(premium.data.expiresAt).toLocaleDateString() : 'N/A' %>
+                                </strong>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <p style="color:#b5b5b5; line-height:1.8;">
+                            You are currently on the standard plan. Upgrade to Premium to unlock advanced features on all your servers.
+                        </p>
+                    <% } %>
+                </div>
+
+                <div class="card" style="grid-column: span 12; text-align:left; padding:28px;">
+                    <h3 style="margin-top:0; color:white; font-size:28px;">Premium Features</h3>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:14px; margin-top:18px;">
+                        <div style="background:rgba(255,255,255,0.03); border-radius:16px; padding:16px; border:1px solid rgba(255,30,46,0.10);">
+                            <strong style="display:block; margin-bottom:8px; color:white;">All Servers Included</strong>
+                            <span style="color:#a7a7a7;">One subscription works across all servers you manage.</span>
+                        </div>
+
+                        <div style="background:rgba(255,255,255,0.03); border-radius:16px; padding:16px; border:1px solid rgba(255,30,46,0.10);">
+                            <strong style="display:block; margin-bottom:8px; color:white;">Premium Commands</strong>
+                            <span style="color:#a7a7a7;">Access premium-only commands and advanced systems.</span>
+                        </div>
+
+                        <div style="background:rgba(255,255,255,0.03); border-radius:16px; padding:16px; border:1px solid rgba(255,30,46,0.10);">
+                            <strong style="display:block; margin-bottom:8px; color:white;">Advanced Dashboard</strong>
+                            <span style="color:#a7a7a7;">Get extra dashboard controls and premium-only options.</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:24px;">
+                        <a
+                            href="https://discord.gg/YOUR_SERVER"
+                            class="btn-manage"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style="max-width:320px;"
+                        >
+                            Join Support Server
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main");
+            const overlay = document.getElementById("overlay");
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("active");
+                overlay.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("collapsed");
+                main.classList.toggle("collapsed");
+            }
+        }
+    </script>
+</body>
+</html>
