@@ -30,10 +30,11 @@
         <div class="content">
             <div class="page-header">
                 <h2>Manage Server <i class="fa-solid fa-sliders" style="color:var(--main-red); font-size:20px;"></i></h2>
-                <p>Configure each command with its own permissions and alias.</p>
+                <p>Configure each command with its own permissions, channels and alias.</p>
             </div>
 
             <div class="grid">
+                <!-- Server Info -->
                 <div class="card" style="grid-column: span 12; text-align:left; padding:28px;">
                     <div style="display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
                         <% if (guild.icon) { %>
@@ -53,6 +54,16 @@
                                 <%= guild.name %>
                             </h3>
                             <p style="margin:0 0 10px; color:#9f9f9f;">Guild ID: <%= guild.id %></p>
+
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <span style="background:rgba(255,30,46,0.10); color:#ffb1b7; border:1px solid rgba(255,30,46,0.18); padding:8px 12px; border-radius:999px; font-size:13px; font-weight:700;">
+                                    DealerX Command Panel
+                                </span>
+
+                                <span style="background:rgba(255,255,255,0.04); color:#d3d3d3; border:1px solid rgba(255,255,255,0.06); padding:8px 12px; border-radius:999px; font-size:13px; font-weight:700;">
+                                    Saved Config Active
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -63,13 +74,15 @@
                 %>
                     <div class="card" style="grid-column: span 12; text-align:left; padding:26px;">
                         <form action="/server/<%= guild.id %>/settings/<%= cmd %>" method="POST">
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:18px;">
                                 <div>
-                                    <h3 style="margin:0 0 8px; color:white; font-size:28px;">/<%= cmd %></h3>
-                                    <p style="margin:0; color:#a8a8a8;">Configure permissions and alias for this command.</p>
+                                    <h3 style="margin:0 0 8px; color:white; font-size:30px; font-weight:900;">/<%= cmd %></h3>
+                                    <p style="margin:0; color:#a8a8a8; line-height:1.7;">
+                                        Configure permissions, allowed channels, and a custom alias for this command.
+                                    </p>
                                 </div>
 
-                                <label style="display:flex; align-items:center; gap:10px; color:white; font-weight:700;">
+                                <label style="display:flex; align-items:center; gap:10px; color:white; font-weight:800; background:rgba(255,255,255,0.03); padding:12px 14px; border-radius:14px; border:1px solid rgba(255,30,46,0.08);">
                                     <input
                                         type="checkbox"
                                         name="disabled"
@@ -81,51 +94,101 @@
                             </div>
 
                             <div style="display:grid; gap:18px;">
-                                <div>
-                                    <label style="display:block; color:white; font-weight:700; margin-bottom:10px;">Allowed Roles</label>
-                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
-                                        <% roles.forEach(role => { %>
-                                            <label style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid rgba(255,30,46,0.08); color:white;">
-                                                <input
-                                                    type="checkbox"
-                                                    name="roles"
-                                                    value="<%= role.id %>"
-                                                    <%= (settings.roles || []).includes(role.id) ? 'checked' : '' %>
-                                                >
-                                                <%= role.name %>
-                                            </label>
-                                        <% }) %>
+                                <!-- Allowed Roles -->
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,30,46,0.08); border-radius:18px; padding:16px;">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                        <div>
+                                            <h4 style="margin:0 0 6px; color:white; font-size:22px;">Allowed Roles</h4>
+                                            <p style="margin:0; color:#9f9f9f; font-size:14px;">
+                                                Choose which roles can use this command.
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            class="btn-manage"
+                                            style="max-width:220px;"
+                                            onclick="toggleBox('roles-<%= cmd %>')"
+                                        >
+                                            <i class="fa-solid fa-user-shield"></i>
+                                            Select Roles
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        id="roles-<%= cmd %>"
+                                        style="display:none; margin-top:14px; max-height:280px; overflow:auto; background:rgba(255,255,255,0.02); border:1px solid rgba(255,30,46,0.08); border-radius:16px; padding:12px;"
+                                    >
+                                        <div style="display:grid; gap:10px;">
+                                            <% roles.forEach(role => { %>
+                                                <label style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid rgba(255,30,46,0.08); color:white;">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="roles"
+                                                        value="<%= role.id %>"
+                                                        <%= (settings.roles || []).includes(role.id) ? 'checked' : '' %>
+                                                    >
+                                                    <%= role.name %>
+                                                </label>
+                                            <% }) %>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label style="display:block; color:white; font-weight:700; margin-bottom:10px;">Allowed Channels</label>
-                                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
-                                        <% channels.forEach(channel => { %>
-                                            <label style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid rgba(255,30,46,0.08); color:white;">
-                                                <input
-                                                    type="checkbox"
-                                                    name="channels"
-                                                    value="<%= channel.id %>"
-                                                    <%= (settings.channels || []).includes(channel.id) ? 'checked' : '' %>
-                                                >
-                                                #<%= channel.name %>
-                                            </label>
-                                        <% }) %>
+                                <!-- Allowed Channels -->
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,30,46,0.08); border-radius:18px; padding:16px;">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                                        <div>
+                                            <h4 style="margin:0 0 6px; color:white; font-size:22px;">Allowed Channels</h4>
+                                            <p style="margin:0; color:#9f9f9f; font-size:14px;">
+                                                Choose which channels can use this command.
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            class="btn-manage"
+                                            style="max-width:240px;"
+                                            onclick="toggleBox('channels-<%= cmd %>')"
+                                        >
+                                            <i class="fa-solid fa-hashtag"></i>
+                                            Select Channels
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        id="channels-<%= cmd %>"
+                                        style="display:none; margin-top:14px; max-height:280px; overflow:auto; background:rgba(255,255,255,0.02); border:1px solid rgba(255,30,46,0.08); border-radius:16px; padding:12px;"
+                                    >
+                                        <div style="display:grid; gap:10px;">
+                                            <% channels.forEach(channel => { %>
+                                                <label style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.03); padding:12px; border-radius:12px; border:1px solid rgba(255,30,46,0.08); color:white;">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="channels"
+                                                        value="<%= channel.id %>"
+                                                        <%= (settings.channels || []).includes(channel.id) ? 'checked' : '' %>
+                                                    >
+                                                    #<%= channel.name %>
+                                                </label>
+                                            <% }) %>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label style="display:block; color:white; font-weight:700; margin-bottom:10px;">Command Alias</label>
+                                <!-- Alias -->
+                                <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,30,46,0.08); border-radius:18px; padding:16px;">
+                                    <h4 style="margin:0 0 10px; color:white; font-size:22px;">Command Alias</h4>
                                     <input
                                         type="text"
                                         name="alias"
                                         value="<%= settings.alias || '' %>"
-                                        placeholder="Example: p or cr"
+                                        placeholder="Example: p or c"
                                         style="width:100%; padding:14px; border-radius:12px; border:1px solid rgba(255,30,46,0.12); background:#111; color:white; outline:none;"
                                     >
-                                    <p style="margin:10px 0 0; color:#9f9f9f; font-size:13px;">
-                                        When a user sends this alias in chat, the bot can reply as if the command was used.
+                                    <p style="margin:10px 0 0; color:#9f9f9f; font-size:13px; line-height:1.7;">
+                                        If you enter an alias here, users can type it in chat and the bot will respond as if the real command was used.
+                                        Example: alias <strong style="color:white;">c</strong> for <strong style="color:white;">/crowns</strong>.
                                     </p>
                                 </div>
                             </div>
@@ -156,6 +219,13 @@
                 sidebar.classList.toggle("collapsed");
                 main.classList.toggle("collapsed");
             }
+        }
+
+        function toggleBox(id) {
+            const box = document.getElementById(id);
+            if (!box) return;
+
+            box.style.display = box.style.display === "none" || box.style.display === "" ? "block" : "none";
         }
     </script>
 </body>
