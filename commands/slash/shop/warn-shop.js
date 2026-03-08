@@ -6,6 +6,8 @@ const {
 const fs = require("fs");
 const path = require("path");
 
+const { getPremiumData } = require("../../../utils/premiumCheck");
+
 const shopsFile = path.join(__dirname, "../../../database/shops.json");
 
 module.exports = {
@@ -28,6 +30,14 @@ module.exports = {
 
   async execute(interaction) {
     try {
+      const premiumResult = await getPremiumData(interaction.user.id);
+      if (!premiumResult.isPremium) {
+        return interaction.reply({
+          content: "❌ هذا الأمر متاح لمستخدمي Premium فقط.",
+          ephemeral: true
+        });
+      }
+
       const channel = interaction.options.getChannel("shop");
       const reason = interaction.options.getString("reason");
 
@@ -48,12 +58,8 @@ module.exports = {
         });
       }
 
-      // زيادة عدد التحذيرات
       shop.warnings = (shop.warnings || 0) + 1;
 
-      /* =========================
-         Embed التحذير داخل الشوب
-      ========================= */
       const warnEmbed = new EmbedBuilder()
         .setColor(0xffa500)
         .setTitle("⚠️ تحذير شوب")
@@ -67,9 +73,6 @@ module.exports = {
 
       await channel.send({ embeds: [warnEmbed] });
 
-      /* =========================
-         🚫 إغلاق تلقائي عند 3 تحذيرات
-      ========================= */
       if (shop.warnings >= 3) {
         delete shops[channel.id];
         fs.writeFileSync(shopsFile, JSON.stringify(shops, null, 2));
@@ -83,7 +86,6 @@ module.exports = {
           .setFooter({ text: "Obscura • Shop System" });
 
         await channel.send({ embeds: [closeEmbed] });
-
         await channel.delete("Shop closed automatically (3 warnings)");
 
         return interaction.reply({
@@ -92,7 +94,6 @@ module.exports = {
         });
       }
 
-      // حفظ التحديث
       fs.writeFileSync(shopsFile, JSON.stringify(shops, null, 2));
 
       await interaction.reply({
