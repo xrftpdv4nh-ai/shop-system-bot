@@ -50,7 +50,31 @@ module.exports = function startWebServer(client) {
         next();
     }
 
-    // Landing page before login
+    async function ensureGuildConfig(guild) {
+        let guildConfig = await GuildConfig.findOne({ guildId: guild.id });
+
+        if (!guildConfig) {
+            guildConfig = await GuildConfig.create({
+                guildId: guild.id,
+                guildName: guild.name,
+                guildIcon: guild.icon || null
+            });
+        } else {
+            guildConfig.guildName = guild.name;
+            guildConfig.guildIcon = guild.icon || null;
+            await guildConfig.save();
+        }
+
+        return guildConfig;
+    }
+
+    function getManageableGuildFromSession(req, guildId) {
+        return (req.user?.guilds || []).find(g => g.id === guildId);
+    }
+
+    // ===============================
+    // Landing
+    // ===============================
     app.get('/', (req, res) => {
         if (req.user) {
             return res.redirect('/home');
@@ -59,7 +83,9 @@ module.exports = function startWebServer(client) {
         res.render('landing');
     });
 
-    // Internal home after login
+    // ===============================
+    // Home
+    // ===============================
     app.get('/home', requireAuth, async (req, res) => {
         const dbUser = await User.findOne({ discordId: req.user.discordId });
         const userData = dbUser || req.user;
@@ -74,7 +100,7 @@ module.exports = function startWebServer(client) {
             page: 'home',
             stats: {
                 crowns: userData.credits || 0,
-                rank: rank,
+                rank,
                 usage: userData.usageScore || 0,
                 messageLevel: userData.messageLevel || 1,
                 voiceLevel: userData.voiceLevel || 1,
@@ -88,9 +114,8 @@ module.exports = function startWebServer(client) {
     });
 
     // ===============================
-    // DAILY PAGE
+    // Daily
     // ===============================
-
     app.get('/daily', requireAuth, (req, res) => {
         res.render('daily');
     });
@@ -125,15 +150,14 @@ module.exports = function startWebServer(client) {
 
         res.json({
             success: true,
-            reward: reward,
+            reward,
             balance: user.credits
         });
     });
 
     // ===============================
-    // Discord OAuth login
+    // Discord OAuth
     // ===============================
-
     app.get('/login', (req, res) => {
         const redirectUri = `${process.env.DOMAIN}/callback`;
 
@@ -147,7 +171,6 @@ module.exports = function startWebServer(client) {
         res.redirect(discordAuthUrl);
     });
 
-    // Discord callback
     app.get('/callback', async (req, res) => {
         const code = req.query.code;
 
@@ -220,31 +243,39 @@ module.exports = function startWebServer(client) {
 
             req.session.userId = user._id.toString();
             res.redirect('/home');
-
         } catch (error) {
             console.error('Discord callback error:', error.response?.data || error.message);
             res.status(500).send('OAuth failed');
         }
     });
 
-    // Servers page
+    // ===============================
+    // Servers
+    // ===============================
     app.get('/servers', requireAuth, async (req, res) => {
-    const guilds = (req.user.guilds || []).map(guild => {
-        const botInGuild = client.guilds.cache.has(guild.id);
+        const guilds = (req.user.guilds || []).map(guild => {
+            const botInGuild = client.guilds.cache.has(guild.id);
 
-        return {
-            ...guild,
-            botAdded: botInGuild
-        };
+            return {
+                ...guild,
+                botAdded: botInGuild
+            };
+        });
+
+        res.render('dashboard', {
+            page: 'servers',
+            guilds,
+            botClientId: process.env.CLIENT_ID
+        });
     });
 
-    res.render('dashboard', {
-        page: 'servers',
-        guilds
-    });
-});
+    app.get('/servers-check', requireAuth, (req, res) => {
+        const guilds = req.user.guilds || [];
+        const updated = guilds.some(g => client.guilds.cache.has(g.id));
 
-    // Old dashboard route -> redirect to servers
+        res.json({ updated });
+    });
+
     app.get('/dashboard', requireAuth, (req, res) => {
         res.redirect('/servers');
     });
@@ -253,37 +284,31 @@ module.exports = function startWebServer(client) {
     // Single server page
     // ===============================
     app.get('/server/:id', requireAuth, async (req, res) => {
-        const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
+        const guild = getManageableGuildFromSession(req, req.params.id);
 
         if (!guild) {
             return res.status(404).send('Server not found');
         }
 
-        let guildConfig = await GuildConfig.findOne({ guildId: guild.id });
-
-        if (!guildConfig) {
-            guildConfig = await GuildConfig.create({
-                guildId: guild.id,
-                guildName: guild.name,
-                guildIcon: guild.icon || null
-            });
-        } else {
-            guildConfig.guildName = guild.name;
-            guildConfig.guildIcon = guild.icon || null;
-            await guildConfig.save();
+        const botInGuild = client.guilds.cache.has(guild.id);
+        if (!botInGuild) {
+            return res.redirect('/servers');
         }
 
+        const guildConfig = await ensureGuildConfig(guild);
+
         const guildObj = client.guilds.cache.get(guild.id);
+
         const roles = guildObj
             ? guildObj.roles.cache
-                .filter(r => r.name !== '@everyone')
-                .map(r => ({ id: r.id, name: r.name }))
+                .filter(role => role.name !== '@everyone')
+                .map(role => ({ id: role.id, name: role.name }))
             : [];
 
         const channels = guildObj
             ? guildObj.channels.cache
-                .filter(c => c.type === 0)
-                .map(c => ({ id: c.id, name: c.name }))
+                .filter(channel => channel.type === 0)
+                .map(channel => ({ id: channel.id, name: channel.name }))
             : [];
 
         res.render('server', {
@@ -299,10 +324,15 @@ module.exports = function startWebServer(client) {
     // Save single command settings
     // ===============================
     app.post('/server/:id/settings/:command', requireAuth, async (req, res) => {
-        const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
+        const guild = getManageableGuildFromSession(req, req.params.id);
 
         if (!guild) {
             return res.status(404).send('Server not found');
+        }
+
+        const botInGuild = client.guilds.cache.has(guild.id);
+        if (!botInGuild) {
+            return res.redirect('/servers');
         }
 
         const commandName = req.params.command;
@@ -312,15 +342,7 @@ module.exports = function startWebServer(client) {
             return res.status(400).send('Invalid command');
         }
 
-        let guildConfig = await GuildConfig.findOne({ guildId: guild.id });
-
-        if (!guildConfig) {
-            guildConfig = await GuildConfig.create({
-                guildId: guild.id,
-                guildName: guild.name,
-                guildIcon: guild.icon || null
-            });
-        }
+        const guildConfig = await ensureGuildConfig(guild);
 
         const selectedRoles = Array.isArray(req.body.roles)
             ? req.body.roles
@@ -335,6 +357,10 @@ module.exports = function startWebServer(client) {
                 : [];
 
         const alias = String(req.body.alias || '').trim().toLowerCase();
+
+        if (!guildConfig.commandSettings) {
+            guildConfig.commandSettings = {};
+        }
 
         guildConfig.commandSettings[commandName] = {
             disabled: req.body.disabled === 'on',
@@ -352,58 +378,8 @@ module.exports = function startWebServer(client) {
     });
 
     // ===============================
-    // Save server settings
-    // ===============================
-    app.post('/server/:id/settings', requireAuth, async (req, res) => {
-        const guild = (req.user.guilds || []).find(g => g.id === req.params.id);
-
-        if (!guild) {
-            return res.status(404).send('Server not found');
-        }
-
-        let guildConfig = await GuildConfig.findOne({ guildId: guild.id });
-
-        if (!guildConfig) {
-            guildConfig = await GuildConfig.create({
-                guildId: guild.id,
-                guildName: guild.name,
-                guildIcon: guild.icon || null
-            });
-        }
-
-        const disabledCommands = Array.isArray(req.body.disabledCommands)
-            ? req.body.disabledCommands
-            : req.body.disabledCommands
-                ? [req.body.disabledCommands]
-                : [];
-
-        let shortcuts = [];
-        if (req.body.shortcutName && req.body.shortcutContent) {
-            const shortcutNames = Array.isArray(req.body.shortcutName)
-                ? req.body.shortcutName
-                : [req.body.shortcutName];
-
-            const shortcutContents = Array.isArray(req.body.shortcutContent)
-                ? req.body.shortcutContent
-                : [req.body.shortcutContent];
-
-            shortcuts = shortcutNames.map((name, index) => ({
-                name: String(name || '').trim(),
-                content: String(shortcutContents[index] || '').trim()
-            })).filter(s => s.name && s.content);
-        }
-
-        guildConfig.disabledCommands = disabledCommands;
-        guildConfig.shortcuts = shortcuts;
-        guildConfig.guildName = guild.name;
-        guildConfig.guildIcon = guild.icon || null;
-
-        await guildConfig.save();
-
-        res.redirect(`/server/${guild.id}`);
-    });
-
     // Logout
+    // ===============================
     app.get('/logout', (req, res) => {
         req.session.destroy(() => {
             res.redirect('/');
