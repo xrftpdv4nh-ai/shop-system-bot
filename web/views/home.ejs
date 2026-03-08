@@ -54,6 +54,13 @@
                             <i class="fa-solid fa-gift"></i>
                             Claim Daily
                         </a>
+
+                        <% if (isBotOwner) { %>
+                            <a href="/owner" class="dx-btn dx-btn-secondary">
+                                <i class="fa-solid fa-user-shield"></i>
+                                Admin Panel
+                            </a>
+                        <% } %>
                     </div>
                 </div>
 
@@ -67,7 +74,21 @@
                         >
                         <div class="dx-profile-meta">
                             <h3><%= user.username %></h3>
-                            <p>DealerX Premium User</p>
+                            <p>
+                                <% if (premium?.isPremium) { %>
+                                    DealerX Premium User
+                                <% } else { %>
+                                    DealerX Standard User
+                                <% } %>
+                            </p>
+
+                            <% if (isBotOwner) { %>
+                                <div style="margin-top:10px;">
+                                    <span style="display:inline-block; background:rgba(255,30,46,0.12); border:1px solid rgba(255,30,46,0.20); color:#ffb8be; padding:8px 12px; border-radius:999px; font-size:12px; font-weight:800;">
+                                        Admin Access
+                                    </span>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -182,6 +203,11 @@
 
                     <div class="dx-info-grid">
                         <div class="dx-info-box">
+                            <span>Plan</span>
+                            <strong><%= premium?.isPremium ? 'Premium' : 'Standard' %></strong>
+                        </div>
+
+                        <div class="dx-info-box">
                             <span>Message XP</span>
                             <strong><%= Number(stats.messageXp || 0).toLocaleString() %></strong>
                         </div>
@@ -200,6 +226,13 @@
                             <span>Crowns</span>
                             <strong><%= Number(stats.crowns || 0).toLocaleString() %></strong>
                         </div>
+
+                        <% if (isBotOwner) { %>
+                            <div class="dx-info-box">
+                                <span>Access Level</span>
+                                <strong>Admin</strong>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             </section>
