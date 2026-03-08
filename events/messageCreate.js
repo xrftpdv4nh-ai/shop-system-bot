@@ -284,14 +284,14 @@ module.exports = {
 if (content.startsWith("$add-crowns")) {
 
   if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-    return message.reply("This command is for administrators only.");
+    return;
   }
 
   const target = message.mentions.users.first();
   const amount = parseInt(message.content.split(" ")[2]);
 
   if (!target || isNaN(amount) || amount <= 0) {
-    return message.reply("Usage: `$add-crowns @user amount`");
+    return;
   }
 
   let userData = await User.findOne({ discordId: target.id });
@@ -307,22 +307,13 @@ if (content.startsWith("$add-crowns")) {
   userData.credits += amount;
   await userData.save();
 
-  const embed = new EmbedBuilder()
-    .setColor("#2ecc71")
-    .setAuthor({
-      name: "DealerX System"
-    })
-    .setThumbnail(target.displayAvatarURL({ dynamic: true }))
-    .setDescription(`Crowns Added`)
-    .addFields(
-      { name: "User", value: `${target}`, inline: true },
-      { name: "Amount", value: `${amount.toLocaleString()}`, inline: true },
-      { name: "New Balance", value: `${userData.credits.toLocaleString()}`, inline: false }
-    )
-    .setTimestamp();
+  await message.delete().catch(() => {});
 
-  return message.channel.send({ embeds: [embed] });
+  return message.channel.send(
+    `**تم إضافة ${amount.toLocaleString()} Crowns إلى ${target}.**`
+  );
 }
+
 
 
 /* =========================
@@ -333,20 +324,20 @@ if (content.startsWith("$add-crowns")) {
 if (content.startsWith("$remove-crowns")) {
 
   if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-    return message.reply("This command is for administrators only.");
+    return;
   }
 
   const target = message.mentions.users.first();
   const amount = parseInt(message.content.split(" ")[2]);
 
   if (!target || isNaN(amount) || amount <= 0) {
-    return message.reply("Usage: `$remove-crowns @user amount`");
+    return;
   }
 
   let userData = await User.findOne({ discordId: target.id });
 
   if (!userData) {
-    return message.reply("This user has no data.");
+    return;
   }
 
   userData.credits -= amount;
@@ -357,21 +348,11 @@ if (content.startsWith("$remove-crowns")) {
 
   await userData.save();
 
-  const embed = new EmbedBuilder()
-    .setColor("#e74c3c")
-    .setAuthor({
-      name: "DealerX System"
-    })
-    .setThumbnail(target.displayAvatarURL({ dynamic: true }))
-    .setDescription(`Crowns Removed`)
-    .addFields(
-      { name: "User", value: `${target}`, inline: true },
-      { name: "Amount", value: `${amount.toLocaleString()}`, inline: true },
-      { name: "New Balance", value: `${userData.credits.toLocaleString()}`, inline: false }
-    )
-    .setTimestamp();
+  await message.delete().catch(() => {});
 
-  return message.channel.send({ embeds: [embed] });
+  return message.channel.send(
+    `**تم خصم ${amount.toLocaleString()} Crowns من ${target}.**`
+  );
 }
     /* =========================
        ❌ إلغاء الخط
