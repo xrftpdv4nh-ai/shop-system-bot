@@ -60,7 +60,11 @@
                 <% guilds.forEach(guild => { %>
                     <div class="card">
                         <% if (guild.icon) { %>
-                            <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" class="server-icon">
+                            <img
+                                src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png"
+                                class="server-icon"
+                                alt="<%= guild.name %>"
+                            >
                         <% } else { %>
                             <div class="server-icon-fallback"><%= guild.name.charAt(0) %></div>
                         <% } %>
@@ -68,9 +72,20 @@
                         <h3 class="guild-name"><%= guild.name %></h3>
                         <p class="guild-id">ID: <%= guild.id %></p>
 
-                        <a href="/server/<%= guild.id %>" class="btn-manage">
-                            <span class="lang-text" data-en="Manage Server" data-ar="إدارة السيرفر">Manage Server</span>
-                        </a>
+                        <% if (guild.botAdded) { %>
+                            <a href="/server/<%= guild.id %>" class="btn-manage">
+                                <span class="lang-text" data-en="Manage Server" data-ar="إدارة السيرفر">Manage Server</span>
+                            </a>
+                        <% } else { %>
+                            <a
+                                href="https://discord.com/api/oauth2/authorize?client_id=<%= botClientId %>&permissions=8&scope=bot%20applications.commands&guild_id=<%= guild.id %>&disable_guild_select=true"
+                                class="btn-manage"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <span class="lang-text" data-en="Add Bot" data-ar="إضافة البوت">Add Bot</span>
+                            </a>
+                        <% } %>
                     </div>
                 <% }) %>
             </div>
@@ -106,7 +121,8 @@
             }
 
             elements.forEach(el => {
-                el.textContent = el.getAttribute(`data-${lang}`);
+                const text = el.getAttribute(`data-${lang}`);
+                if (text) el.textContent = text;
             });
 
             if (switcher) switcher.value = lang;
@@ -119,6 +135,18 @@
 
         const savedLang = localStorage.getItem("siteLang") || "en";
         applyLanguage(savedLang);
+
+        // auto verify bot join
+        setInterval(() => {
+            fetch('/servers-check')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.updated) {
+                        location.reload();
+                    }
+                })
+                .catch(() => {});
+        }, 5000);
     </script>
 </body>
 </html>
