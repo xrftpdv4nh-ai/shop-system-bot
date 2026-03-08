@@ -110,8 +110,9 @@ module.exports = function startWebServer(client) {
         const rank = betterUsers + 1;
 
         res.render('home', {
-            page: 'home',
-            stats: {
+    page: 'home',
+    premium: req.premium,
+    stats: {
                 crowns: userData.credits || 0,
                 rank,
                 usage: userData.usageScore || 0,
