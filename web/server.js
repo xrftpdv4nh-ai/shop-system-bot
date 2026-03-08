@@ -48,18 +48,30 @@ module.exports = function startWebServer(client) {
             }
 
             res.locals.user = req.user || null;
+            res.locals.isBotOwner = req.user?.discordId === process.env.BOT_OWNER_ID;
             next();
         } catch (error) {
             console.error('Session user load error:', error);
             req.premium = { isPremium: false, data: null };
             res.locals.user = null;
             res.locals.premium = { isPremium: false, data: null };
+            res.locals.isBotOwner = false;
             next();
         }
     });
 
     function requireAuth(req, res, next) {
         if (!req.user) return res.redirect('/login');
+        next();
+    }
+
+    function requireBotOwner(req, res, next) {
+        if (!req.user) return res.redirect('/login');
+
+        if (req.user.discordId !== process.env.BOT_OWNER_ID) {
+            return res.status(403).send('Forbidden');
+        }
+
         next();
     }
 
@@ -414,6 +426,74 @@ module.exports = function startWebServer(client) {
             page: 'premium',
             premium: req.premium,
             isBotOwner: isBotOwner(req)
+        });
+    });
+
+    // ===============================
+    // Owner panel
+    // ===============================
+    app.get('/owner', requireAuth, requireBotOwner, async (req, res) => {
+        const now = new Date();
+
+        const totalUsers = await User.countDocuments();
+        const totalDashboardUsers = await User.countDocuments({
+            lastLogin: { $ne: null }
+        });
+
+        const totalPremiumUsers = await Premium.countDocuments({
+            isActive: true,
+            expiresAt: { $gt: now }
+        });
+
+        const totalBotServers = client.guilds.cache.size;
+
+        const totalManageableServers = await User.aggregate([
+            {
+                $project: {
+                    guildsCount: { $size: { $ifNull: ['$guilds', []] } }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$guildsCount' }
+                }
+            }
+        ]);
+
+        const totalCommandsUsed = await User.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$commandUsage' }
+                }
+            }
+        ]);
+
+        const totalCrowns = await User.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: '$credits' }
+                }
+            }
+        ]);
+
+        const ownerStats = {
+            totalUsers,
+            totalDashboardUsers,
+            totalPremiumUsers,
+            totalBotServers,
+            totalManageableServers: totalManageableServers[0]?.total || 0,
+            totalCommandsUsed: totalCommandsUsed[0]?.total || 0,
+            totalCrowns: totalCrowns[0]?.total || 0
+        };
+
+        res.render('owner', {
+            page: 'owner',
+            premium: req.premium,
+            isBotOwner: true,
+            ownerStats
         });
     });
 
