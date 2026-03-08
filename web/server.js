@@ -3,6 +3,8 @@ const path = require('path');
 const session = require('express-session');
 const axios = require('axios');
 
+const Premium = require('../models/Premium');
+const { getPremiumData } = require('../utils/premiumCheck');
 const User = require('../models/User');
 const GuildConfig = require('../models/GuildConfig');
 
@@ -30,20 +32,31 @@ module.exports = function startWebServer(client) {
     }));
 
     app.use(async (req, res, next) => {
-        try {
-            if (req.session.userId) {
-                const user = await User.findById(req.session.userId).lean();
-                if (user) req.user = user;
-            }
-
-            res.locals.user = req.user || null;
-            next();
-        } catch (error) {
-            console.error('Session user load error:', error);
-            res.locals.user = null;
-            next();
+    try {
+        if (req.session.userId) {
+            const user = await User.findById(req.session.userId).lean();
+            if (user) req.user = user;
         }
-    });
+
+        if (req.user?.discordId) {
+            const premiumResult = await getPremiumData(req.user.discordId);
+            req.premium = premiumResult;
+            res.locals.premium = premiumResult;
+        } else {
+            req.premium = { isPremium: false, data: null };
+            res.locals.premium = { isPremium: false, data: null };
+        }
+
+        res.locals.user = req.user || null;
+        next();
+    } catch (error) {
+        console.error('Session user load error:', error);
+        req.premium = { isPremium: false, data: null };
+        res.locals.user = null;
+        res.locals.premium = { isPremium: false, data: null };
+        next();
+    }
+});
 
     function requireAuth(req, res, next) {
         if (!req.user) return res.redirect('/login');
@@ -377,6 +390,15 @@ module.exports = function startWebServer(client) {
         res.redirect(`/server/${guild.id}`);
     });
 
+    // ===============================
+// Premium page
+// ===============================
+app.get('/premium', requireAuth, async (req, res) => {
+    res.render('premium', {
+        page: 'premium',
+        premium: req.premium
+    });
+});
     // ===============================
     // Logout
     // ===============================
