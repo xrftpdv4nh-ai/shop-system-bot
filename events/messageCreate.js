@@ -163,7 +163,7 @@ module.exports = {
   }
 
   return message.reply(
-    `👑 | ${mentionedUser} has **${(targetData.credits || 0).toLocaleString()}** crowns.`
+    ` | ${mentionedUser} has **${(targetData.credits || 0).toLocaleString()}** crowns.`
   );
 }
 
@@ -186,7 +186,7 @@ module.exports = {
             await userData.save();
 
             return message.reply(
-              `👑 | ${message.author} claimed **${reward.toLocaleString()} crowns**.\nYour balance is now **${(userData.credits || 0).toLocaleString()} crowns**.`
+              ` | ${message.author} claimed **${reward.toLocaleString()} crowns**.\nYour balance is now **${(userData.credits || 0).toLocaleString()} crowns**.`
             );
           }
 
